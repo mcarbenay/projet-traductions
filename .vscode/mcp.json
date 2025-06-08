@@ -1,0 +1,44 @@
+{
+    "servers": {
+        "azureDevOps": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@tiberriver256/mcp-server-azure-devops"
+            ],
+            "env": {
+                "AZURE_DEVOPS_ORG_URL": "${input:orgURL}",
+                "AZURE_DEVOPS_AUTH_METHOD": "pat",
+                "AZURE_DEVOPS_PAT": "${input:pat}",
+                "AZURE_DEVOPS_DEFAULT_PROJECT": "${input:projectName}"
+            }
+        },
+        "altazionDetails": {
+           "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "altazion.azurecr.io/internal-data-mcp"
+      ],
+        }
+    },
+    "inputs": [
+        {
+            "id": "orgURL",
+            "type": "promptString",
+            "description": "Enter Azure DevOps organization URL"
+        },
+        {
+            "id": "pat",
+            "type": "promptString",
+            "description": "Enter your Personal Access Token (PAT)"
+        },
+        {
+            "id": "projectName",
+            "type": "promptString",
+            "description": "Enter your default project name"
+        }
+    ]
+}
