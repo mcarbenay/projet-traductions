@@ -1,0 +1,122 @@
+# .gitignore for Visual Studio
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Mono Auto Generated Files
+mono_crash.*
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotCover
+*.dotCover
+
+# NCrunch
+*.ncrunch*
+.*crunch*.local.xml
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# TFS
+$tf/
+
+# Recycle Bin used by Visual Studio
+*.vspscc
+*.vssscc
+
+# Visual Studio 2017+ cache/options directory
+.vs/
+
+# Test Results
+TestResults/
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+
+# NPM Packages
+node_modules/
+
+# Yarn
+.yarn/
+.yarnrc.yml
+.pnp.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Compiled output
+/dist/
+/build/
+
+# Local env files
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Mac system files
+.DS_Store
+
+# Vue.js/Vuetify specific
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Optional REPL history
+.node_repl_history
+
+# VSCode settings
+.vscode/
+
+# Storybook build outputs
+out/
+storybook-static/
+
+# SASS cache
+.sass-cache/
+
+# IDE specific
+*.iml
+
+# End of .gitignore
