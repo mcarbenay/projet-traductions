@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using System.Threading.Channels;
 using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
@@ -23,11 +24,13 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         private readonly UserService _service;
         private readonly AuthorizationService _authz;
         private readonly ILogger<UsersController> _logger;
-        public UsersController(UserService service, AuthorizationService authz, ILogger<UsersController> logger)
+        private readonly Channel<UserBackgroundTask> _userTaskChannel;
+        public UsersController(UserService service, AuthorizationService authz, ILogger<UsersController> logger, Channel<UserBackgroundTask> userTaskChannel)
         {
             _service = service;
             _authz = authz;
             _logger = logger;
+            _userTaskChannel = userTaskChannel;
         }
 
         /// <summary>
@@ -98,18 +101,16 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             {
                 if (!_authz.IsAdmin())
                     return ExceptionHelper.ToActionResult(new UnauthorizedAccessException(), this, nameof(Create));
-                // Generate a random password for the new user
-                var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 12);
                 var user = new User
                 {
                     Name = dto.Name,
                     Email = dto.Email,
-                    PasswordHash = UserService.HashPassword(randomPassword),
                     IsAdministrator = dto.IsAdministrator,
                     Status = "pending"
                 };
-                // Map solution accesses
-                foreach (UseTheOps.PolyglotInitiative.Models.Dtos.UserSolutionAccessDto access in dto.SolutionAccesses)
+                var randomPassword = Guid.NewGuid().ToString("N").Substring(0, 12);
+                user.PasswordHash = UserService.HashPassword(randomPassword);
+                foreach (var access in dto.SolutionAccesses)
                 {
                     user.UserSolutionAccesses.Add(new UserSolutionAccess
                     {
@@ -119,12 +120,21 @@ namespace UseTheOps.PolyglotInitiative.Controllers
                 }
                 var created = await _service.CreateAsync(user);
                 // Build activation link
-                var tokenRaw = $"{created.Id}:{randomPassword}";
-                var tokenBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(tokenRaw));
                 var request = HttpContext.Request;
                 var rootUrl = $"{request.Scheme}://{request.Host}";
+                var tokenRaw = $"{created.Id}:{randomPassword}";
+                var tokenBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(tokenRaw));
                 var activationLink = $"{rootUrl}/register/user?token={tokenBase64}";
-                // TODO: Send email to user with account finalization link and random password
+                // Enqueue background task for sending email
+                await _userTaskChannel.Writer.WriteAsync(new UserBackgroundTask
+                {
+                    TaskType = "UserCreated",
+                    UserId = created.Id,
+                    Email = created.Email,
+                    UserName = created.Name,
+                    ActivationLink = activationLink,
+                    Language = "fr-FR" // TODO: rendre dynamique selon le profil utilisateur ou le DTO
+                });
                 var result = new CreateUserResult
                 {
                     User = new UserDto

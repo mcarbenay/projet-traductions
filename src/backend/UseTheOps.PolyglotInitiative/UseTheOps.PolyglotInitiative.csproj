@@ -12,6 +12,7 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\UseTheOps.PolyglotInitiative.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Fluid.Core" Version="2.24.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
@@ -29,10 +30,14 @@
     <PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
   </ItemGroup>
-  <!-- <ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Resources\*.resx" />
-  </ItemGroup> -->
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MailTemplates\*.liquid" />
+  </ItemGroup>
   <PropertyGroup>
     <WarningsNotAsErrors>NU1902;NU1900</WarningsNotAsErrors>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
 </Project>

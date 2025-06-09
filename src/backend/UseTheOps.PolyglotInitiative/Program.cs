@@ -21,6 +21,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using System.Threading.Channels;
+using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative
 {
@@ -93,6 +95,36 @@ namespace UseTheOps.PolyglotInitiative
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.ApiKeyService>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.AuthorizationService>();
+            // --- BACKGROUND TASKS: User creation notification ---
+            // Register channel for user background tasks
+            builder.Services.AddSingleton<Channel<UserBackgroundTask>>(provider =>
+                Channel.CreateUnbounded<UserBackgroundTask>());
+            // Register background service for user tasks
+            builder.Services.AddHostedService<UseTheOps.PolyglotInitiative.Services.UserBackgroundTaskService>();
+            // Register SMTP configuration from environment
+            builder.Services.Configure<SmtpMailOptions>(options =>
+            {
+                options.Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "localhost";
+                options.Port = int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var port) ? port : 25;
+                options.User = Environment.GetEnvironmentVariable("SMTP_USER") ?? string.Empty;
+                options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? string.Empty;
+                options.From = Environment.GetEnvironmentVariable("SMTP_FROM") ?? "noreply@localhost";
+                options.UseSsl = (Environment.GetEnvironmentVariable("SMTP_SSL") ?? "false").ToLowerInvariant() == "true";
+            });
+            // Register SMTP helper for DI
+            builder.Services.AddSingleton<SmtpMailHelper>(provider =>
+            {
+                var opts = provider.GetRequiredService<IOptions<SmtpMailOptions>>().Value;
+                return new SmtpMailHelper(
+                    opts.Host,
+                    opts.Port,
+                    opts.User,
+                    opts.Password,
+                    opts.From,
+                    opts.UseSsl,
+                    null // fromDisplayName peut être enrichi plus tard
+                );
+            });
             // Add authentication and JWT Bearer configuration
             builder.Services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>

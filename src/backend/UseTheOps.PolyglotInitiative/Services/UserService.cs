@@ -13,7 +13,10 @@ namespace UseTheOps.PolyglotInitiative.Services
     public class UserService
     {
         private readonly PolyglotInitiativeDbContext _db;
-        public UserService(PolyglotInitiativeDbContext db) { _db = db; }
+        public UserService(PolyglotInitiativeDbContext db)
+        {
+            _db = db;
+        }
 
         /// <summary>
         /// Gets all users.
@@ -30,7 +33,13 @@ namespace UseTheOps.PolyglotInitiative.Services
         /// Creates a new user.
         /// </summary>
         /// <param name="user">The user to create.</param>
-        public async Task<User> CreateAsync(User user) { _db.Users.Add(user); await _db.SaveChangesAsync(); return user; }
+        /// <returns>The created user.</returns>
+        public async Task<User> CreateAsync(User user)
+        {
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+            return user;
+        }
 
         /// <summary>
         /// Updates an existing user.
