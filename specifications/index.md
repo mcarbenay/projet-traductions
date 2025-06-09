@@ -1,11 +1,11 @@
-# Projet de gestion des fichiers de traductions
+# Translation File Management Project
 
-Ce projet a pour objectif de faciliter la gestion, la centralisation et la traduction des fichiers de ressources pour des solutions multi-stacks.  
-Il permet de gérer plusieurs solutions, chacune composée de projets, eux-mêmes composés de composants, qui contiennent des fichiers de ressources à traduire.
+This project aims to facilitate the management, centralization, and translation of resource files for multi-stack solutions.  
+It allows you to manage several solutions, each composed of projects, themselves composed of components, which contain resource files to be translated.
 
-## Domaines fonctionnels
+## Functional Domains
 
-- Gestion des fichiers de traduction
-- Gestion des utilisateurs et des droits
-- Gestion des projets et des solutions
-- Suivi de l’avancement des traductions
+- Translation file management
+- User and rights management
+- Project and solution management
+- Translation progress tracking

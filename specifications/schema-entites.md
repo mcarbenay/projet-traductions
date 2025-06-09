@@ -1,8 +1,8 @@
-# Schéma des entités principales
+# Main Entity Diagram
 
-> Convention : tous les noms d’entités, propriétés, relations, tables, colonnes, endpoints d’API, méthodes et objets métiers sont en anglais, conformément aux choix techniques du projet.
+> Convention: All entity, property, relation, table, column, API endpoint, method, and business object names are in English, as per the project's technical choices.
 
-Ce diagramme présente la structure des entités principales du domaine et leurs relations.
+This diagram shows the structure of the main domain entities and their relationships.
 
 ```mermaid
 classDiagram

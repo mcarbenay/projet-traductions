@@ -1,56 +1,56 @@
-# Gestion des fichiers de traduction
+# Translation File Management
 
-## Fonctionnalités principales
+## Main Features
 
-- Importer et exporter des fichiers de ressources (formats courants : .resx, .json, .po, etc.)
-- Visualiser la structure des fichiers et leur contenu
-- Modifier les traductions directement dans l’interface
-- Suivre l’état de complétion des traductions par langue
-- Historique des modifications et gestion des versions
+- Import and export resource files (common formats: .resx, .json, .po, etc.)
+- View the structure and content of files
+- Edit translations directly in the interface
+- Track translation completion status by language
+- Modification history and version management
 
-## Règles de gestion
+## Business Rules
 
-- Chaque fichier de ressource est associé à un composant d’un projet
-- Les modifications sont historisées et traçables
-- Les fichiers peuvent être téléchargés individuellement ou en lot
+- Each resource file is associated with a project component
+- Modifications are historized and traceable
+- Files can be downloaded individually or in bulk
 
-## Entités de données
+## Data Entities
 
-### Propriétés d’un fichier de ressources
+### Resource File Properties
 
-Un fichier de ressources possède les propriétés suivantes :
+A resource file has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel du fichier.
-2. **Nom** : Nom du fichier (ex : "messages.fr_FR.json").
-3. **Chemin** : Chemin relatif ou absolu du fichier dans le projet.
-4. **Projet** : Référence au projet auquel il appartient.
-5. **Composant** : Référence au composant auquel il appartient (si applicable).
+1. **ID (UUID)**: Universally unique identifier of the file.
+2. **Name**: File name (e.g., "messages.fr_FR.json").
+3. **Path**: Relative or absolute path of the file in the project.
+4. **Project**: Reference to the project it belongs to.
+5. **Component**: Reference to the component it belongs to (if applicable).
 
-Chaque fichier contient un ensemble de ressources à traduire.
+Each file contains a set of translatable resources.
 
-### Propriétés d’une ressource à traduire
+### Translatable Resource Properties
 
-Une ressource à traduire (entrée à traduire dans un fichier) possède les propriétés suivantes :
+A translatable resource (an entry to be translated in a file) has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel de la ressource.
-2. **Clé** : Clé de la ressource (ex : "welcome.message").
-3. **Valeur source** : Texte source (ex : en anglais ou langue par défaut).
-4. **Description** : Texte descriptif ou contexte d’utilisation de la ressource (facultatif, ex : "Message affiché à l’accueil").
-5. **Fichier** : Référence au fichier de ressources auquel elle appartient.
+1. **ID (UUID)**: Universally unique identifier of the resource.
+2. **Key**: Resource key (e.g., "welcome.message").
+3. **Source value**: Source text (e.g., in English or default language).
+4. **Description**: Descriptive text or usage context of the resource (optional, e.g., "Message displayed on the home page").
+5. **File**: Reference to the resource file it belongs to.
 
-Chaque ressource à traduire pourra être traduite dans chacune des langues/variantes définies pour la solution.
+Each translatable resource can be translated into each of the languages/variants defined for the solution.
 
-### Propriétés d’une traduction de ressource
+### Resource Translation Properties
 
-Une traduction de ressource représente la version traduite d’une ressource à traduire dans un besoin de traduction (langue/variante) spécifique. Elle possède les propriétés suivantes :
+A resource translation represents the translated version of a translatable resource in a specific translation need (language/variant). It has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel de la traduction.
-2. **Ressource à traduire** : Référence à la ressource à traduire concernée.
-3. **Besoin de traduction** : Référence au besoin de traduction (langue/variante) ciblé.
-4. **Valeur traduite validée** : Texte traduit validé dans la langue/variante cible.
-5. **Valeur traduite suggérée** : Texte proposé ou en cours de relecture/modification.
-6. **Statut** : Indique l’état de la traduction (ex : à traduire, en cours, validée, suggestion en attente).
-7. **Date de dernière modification**
-8. **Utilisateur ayant modifié**
+1. **ID (UUID)**: Universally unique identifier of the translation.
+2. **Translatable resource**: Reference to the concerned translatable resource.
+3. **Translation need**: Reference to the targeted translation need (language/variant).
+4. **Validated value**: Validated translated text in the target language/variant.
+5. **Suggested value**: Proposed or under-review/modified text.
+6. **Status**: Indicates the translation status (e.g., to be translated, in progress, validated, suggestion pending).
+7. **Last modified date**
+8. **Modified by user**
 
-Pour chaque ressource à traduire et besoin de traduction, il peut donc exister une version validée et une version suggérée, facilitant l’itération et la relecture avant validation finale.
+For each translatable resource and translation need, there may be a validated version and a suggested version, facilitating iteration and review before final validation.

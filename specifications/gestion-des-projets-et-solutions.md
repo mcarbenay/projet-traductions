@@ -1,82 +1,82 @@
-# Gestion des projets et des solutions
+# Project and Solution Management
 
-## Fonctionnalités principales
+## Main Features
 
-- Création, modification et suppression de solutions et de projets
-- Organisation hiérarchique : solution > projet > composant > fichier de ressource
-- Visualisation de la structure globale
-- Association des fichiers de traduction aux composants
+- Create, edit, and delete solutions and projects
+- Hierarchical organization: solution > project > component > resource file
+- Global structure visualization
+- Association of translation files to components
 
-## Règles de gestion
+## Business Rules
 
-- Un projet appartient à une seule solution
-- Un composant appartient à un seul projet
-- Un fichier de ressource appartient à un seul composant
+- A project belongs to a single solution
+- A component belongs to a single project
+- A resource file belongs to a single component
 
-## Entités de données
+## Data Entities
 
-### Propriétés d’une solution
+### Solution Properties
 
-Une solution possède les propriétés suivantes :
+A solution has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel de la solution.
-2. **Code** : Code court unique permettant d’identifier la solution (ex : "ERP", "MOBILE_APP").
-3. **Nom** : Nom unique de la solution.
-4. **Description** : Texte descriptif de la solution.
-5. **URL de présentation** : Lien vers une page de présentation ou documentation externe.
-6. **Propriétaire** : Utilisateur référencé comme propriétaire de la solution.
+1. **ID (UUID)**: Universally unique identifier of the solution.
+2. **Code**: Short unique code identifying the solution (e.g., "ERP", "MOBILE_APP").
+3. **Name**: Unique name of the solution.
+4. **Description**: Descriptive text of the solution.
+5. **Presentation URL**: Link to a presentation or external documentation page.
+6. **Owner**: User referenced as the owner of the solution.
 
-### Propriétés d’un projet
+### Project Properties
 
-Un projet possède les propriétés suivantes :
+A project has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel du projet.
-2. **Code** : Code court unique permettant d’identifier le projet (ex : "BACKEND", "FRONTEND").
-3. **Nom** : Nom du projet.
-4. **Description** : Texte descriptif du projet.
-5. **Origine** : Source du contenu du projet (ex : GitHub, API, Azure DevOps, etc.).
-6. **URL d’origine** : Lien vers la source du projet (ex : URL du dépôt GitHub, de l’API, etc.).
-7. **Identifiant externe (UUID)** : Référence à l’identifiant externe associé au projet (voir [gestion-des-connections-externes.md](gestion-des-connections-externes.md)).
+1. **ID (UUID)**: Universally unique identifier of the project.
+2. **Code**: Short unique code identifying the project (e.g., "BACKEND", "FRONTEND").
+3. **Name**: Project name.
+4. **Description**: Descriptive text of the project.
+5. **Origin**: Source of the project content (e.g., GitHub, API, Azure DevOps, etc.).
+6. **Origin URL**: Link to the project source (e.g., GitHub repository URL, API, etc.).
+7. **External identifier (UUID)**: Reference to the external identifier associated with the project (see [external-connections-management.md](gestion-des-connections-externes.md)).
 
-### Propriétés d’un composant
+### Component Properties
 
-Un composant possède les propriétés suivantes :
+A component has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel du composant.
-2. **Nom** : Nom du composant.
-3. **Code** : Code court ou nom technique du composant (ex : nom du dossier contenant les fichiers de traductions).
+1. **ID (UUID)**: Universally unique identifier of the component.
+2. **Name**: Component name.
+3. **Code**: Short code or technical name of the component (e.g., folder name containing the translation files).
 
-### Propriétés d’un besoin de traduction
+### Translation Need Properties
 
-Un besoin de traduction (par exemple : une langue ou une variante régionale à traduire pour une solution) possède les propriétés suivantes :
+A translation need (e.g., a language or regional variant to be translated for a solution) has the following properties:
 
-1. **Identifiant (UUID)** : Identifiant unique universel du besoin de traduction.
-2. **Code** : Code normalisé (ex : "fr_FR", "en", "fr_BE").
-3. **Libellé** : Libellé affiché à l’utilisateur (ex : "Français (France)", "Anglais").
-4. **Défaut** : Booléen indiquant si ce besoin de traduction est la langue principale de la solution.
-5. **Solution** : Référence à la solution concernée.
+1. **ID (UUID)**: Universally unique identifier of the translation need.
+2. **Code**: Normalized code (e.g., "fr_FR", "en", "fr_BE").
+3. **Label**: Display label for the user (e.g., "French (France)", "English").
+4. **Default**: Boolean indicating if this translation need is the main language of the solution.
+5. **Solution**: Reference to the related solution.
 
-Chaque solution possède une liste de besoins de traduction, qui détermine les langues/variantes à gérer pour tous les fichiers de la solution. Un seul besoin de traduction peut être marqué comme défaut par solution.
+Each solution has a list of translation needs, which determines the languages/variants to manage for all files in the solution. Only one translation need can be marked as default per solution.
 
-## Interface de gestion des solutions, projets et composants
+## Solution, Project, and Component Management Interface
 
-### Vue liste des solutions
+### Solution List View
 
-- L’utilisateur visualise une liste de ses solutions (nom, code, description, propriétaire).
-- Un clic sur une solution ouvre la page de détail correspondante.
+- The user sees a list of their solutions (name, code, description, owner).
+- Clicking a solution opens its detail page.
 
-### Détail d’une solution
+### Solution Detail
 
-- Affichage d’une arborescence interactive des projets et composants de la solution (navigation hiérarchique).
-- Présentation d’un tableau de synthèse de la progression de traduction de tous les fichiers de la solution :
-  - Une ligne par fichier de ressource
-  - Une colonne par langue souhaitée
-  - Affichage du taux de complétion ou d’un indicateur visuel (ex : barre de progression, couleur)
-- Possibilité de filtrer ce tableau en cliquant sur un projet ou un composant dans l’arborescence :
-  - Le tableau n’affiche alors que les fichiers liés à l’élément sélectionné
+- Display of an interactive tree of the solution's projects and components (hierarchical navigation).
+- Presentation of a summary table of the translation progress of all files in the solution:
+  - One row per resource file
+  - One column per desired language
+  - Display of completion rate or a visual indicator (e.g., progress bar, color)
+- Ability to filter this table by clicking a project or component in the tree:
+  - The table then only shows files related to the selected item
 
 ### Navigation
 
-- Retour à la liste des solutions possible à tout moment
-- L’URL reflète l’élément sélectionné (solution, projet, composant) pour permettre le partage de liens directs
+- Return to the solution list possible at any time
+- The URL reflects the selected item (solution, project, component) to allow sharing direct links
 

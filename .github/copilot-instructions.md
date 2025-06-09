@@ -4,7 +4,7 @@ Tu vas rédiger les spécifications fonctionnelles et techniques pour un projet 
 
 ## Spécifications fonctionnelles
 
-Les spécifications vont dans le dosser "specifications", elles doivent être rédigées en français et mis dans des fichiers markdown.
+Les spécifications vont dans le dosser "specifications", elles doivent être rédigées en anglais (!IMPORTANT) et mis dans des fichiers markdown.
 Créé une structure simple :
 - un fichier pour les informations générales du projet (index.md)
 - un fichier par grand domaine fonctionnel (par exemple : "gestion-des-fichiers.md", "gestion-des-utilisateurs.md", etc.)

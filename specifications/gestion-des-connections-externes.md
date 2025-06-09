@@ -1,28 +1,28 @@
-# Gestion des connexions et identifiants externes
+# External Connections and Identifiers Management
 
-## Objectif
+## Objective
 
-Permettre de gérer les connexions et identifiants provenant de systèmes externes (AzureDevOps, GitHub, API, etc.) pour les projets, composants ou autres entités de la solution.
+Enable the management of connections and identifiers from external systems (AzureDevOps, GitHub, API, etc.) for projects or other solution entities.
 
-## Fonctionnalités principales
+## Main Features
 
-- Définir et enregistrer différents types de connexions externes (ex : AzureDevOps, GitHub, API personnalisée).
-- Associer un ou plusieurs identifiants externes à un projet, composant ou autre entité.
-- Préciser la source et le type d’identifiant (ex : repositoryId, pipelineId, projectKey, etc.).
-- Permettre la consultation, la modification et la suppression de ces identifiants depuis l’interface.
-- Historiser les modifications des identifiants externes.
+- Define and register different types of external connections (e.g., AzureDevOps, GitHub, custom API)
+- Associate one or more external identifiers with a project or other entity
+- Specify the source and type of identifier (e.g., repositoryId, pipelineId, projectKey, etc.)
+- Allow viewing, editing, and deleting these identifiers from the interface
+- Keep a history of external identifier modifications
 
-## Structure d’un identifiant externe
+## External Identifier Structure
 
-- **Identifiant (UUID)** : Identifiant unique universel de l’identifiant externe (permettant la référence depuis un projet).
-- **Type de source** : (ex : AzureDevOps, GitHub, API)
-- **Nom du champ** : (ex : repositoryId, pipelineId, projectKey)
-- **Valeur** : (ex : 123456, "repo-xyz", "my-project-key")
-- **Date d’ajout / modification**
-- **Utilisateur ayant effectué la modification**
+- **ID (UUID)**: Universally unique identifier of the external identifier (for referencing from a project)
+- **Source type**: (e.g., AzureDevOps, GitHub, API)
+- **Field name**: (e.g., repositoryId, pipelineId, projectKey)
+- **Value**: (e.g., 123456, "repo-xyz", "my-project-key")
+- **Date added/modified**
+- **User who modified**
 
-## Règles de gestion
+## Business Rules
 
-- Un projet ne peut référencer qu’un seul identifiant externe (une seule source). Toutefois, un identifiant externe peut servir à plusieurs projet.
-- Les identifiants externes doivent être uniques pour une même source et un même type de champ au sein des projets.
-- Les droits d’accès à la gestion des identifiants externes sont alignés sur ceux du projet concerné.
+- A project can reference only one external identifier (one source) at a time. However, an external identifier can be used by several projects.
+- External identifiers must be unique for the same source and field type within projects.
+- Access rights to manage external identifiers are aligned with those of the related project.
