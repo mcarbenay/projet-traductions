@@ -33,6 +33,8 @@ namespace UseTheOps.PolyglotInitiative.Tests
         public async Task InitializeAsync()
         {
             await PgContainer.StartAsync();
+            // Définir la variable d'environnement PG_CONNECTION_STRING pour le backend
+            Environment.SetEnvironmentVariable("PG_CONNECTION_STRING", PgContainer.GetConnectionString());
             InMemoryLoggerProvider = new InMemoryLoggerProvider();
             // Force la variable d'environnement JWT_SECRET à une valeur valide (32+ caractères)
             Environment.SetEnvironmentVariable("JWT_SECRET", "SuperSecretKeyForJwtToken123456!@#");
@@ -60,7 +62,7 @@ namespace UseTheOps.PolyglotInitiative.Tests
             var db = scope.ServiceProvider.GetRequiredService<UseTheOps.PolyglotInitiative.Data.PolyglotInitiativeDbContext>();
             // Appliquer les migrations pour créer le schéma AVANT toute connexion
             db.Database.Migrate();
-            await db.Database.OpenConnectionAsync();onten
+            await db.Database.OpenConnectionAsync();
             var tables = new[] {
                 "ResourceTranslations", "TranslatableResources", "ResourceFiles", "Components", "Projects", "Solutions", "TranslationNeeds", "Users", "UserSolutionAccesses", "ApiKeys", "ExternalIdentifiers"
             };

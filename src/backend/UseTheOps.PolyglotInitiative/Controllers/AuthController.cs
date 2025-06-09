@@ -35,8 +35,17 @@ namespace UseTheOps.PolyglotInitiative.Controllers
                 var user = await _userService.GetByEmailAsync(request.Email);
                 if (user == null || !UserService.VerifyPassword(user, request.Password) || user.Status != "confirmed")
                 {
+                    var problem = new ProblemDetails
+                    {
+                        Type = "https://tools.ietf.org/html/rfc7807",
+                        Title = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Unauthorized"),
+                        Status = 401,
+                        Detail = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Unauthorized"),
+                        Instance = HttpContext.Request.Path
+                    };
+                    problem.Extensions["code"] = "UnauthorizedError";
                     _logger.LogWarning("Unauthorized login attempt for email: {Email}", request.Email);
-                    return Unauthorized();
+                    return Unauthorized(problem);
                 }
 
                 var token = GenerateJwtToken(user);
@@ -53,7 +62,17 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception during login for email: {Email}", request?.Email);
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                var (msg, code) = UseTheOps.PolyglotInitiative.Helpers.ExceptionHelper.GetFriendlyMessage(ex, nameof(AuthController), nameof(Login));
+                var problem = new ProblemDetails
+                {
+                    Type = "https://tools.ietf.org/html/rfc7807",
+                    Title = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Internal"),
+                    Status = 500,
+                    Detail = msg,
+                    Instance = HttpContext.Request.Path
+                };
+                problem.Extensions["code"] = code;
+                return StatusCode(500, problem);
             }
         }
 
@@ -99,22 +118,49 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> LoginApiKey([FromBody] ApiKeyLoginRequest request, [FromServices] ApiKeyService apiKeyService)
         {
             _logger.LogInformation("API Key login attempt with key: {ApiKey}", request.ApiKey);
-            var apiKey = (await apiKeyService.GetAllAsync()).FirstOrDefault(k => k.KeyValue == request.ApiKey && k.RevokedAt == null);
-            if (apiKey == null)
+            try
             {
-                _logger.LogWarning("Unauthorized API Key login attempt with key: {ApiKey}", request.ApiKey);
-                return Unauthorized();
+                var apiKey = (await apiKeyService.GetAllAsync()).FirstOrDefault(k => k.KeyValue == request.ApiKey && k.RevokedAt == null);
+                if (apiKey == null)
+                {
+                    var problem = new ProblemDetails
+                    {
+                        Type = "https://tools.ietf.org/html/rfc7807",
+                        Title = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Unauthorized"),
+                        Status = 401,
+                        Detail = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Unauthorized"),
+                        Instance = HttpContext.Request.Path
+                    };
+                    problem.Extensions["code"] = "UnauthorizedError";
+                    _logger.LogWarning("Unauthorized API Key login attempt with key: {ApiKey}", request.ApiKey);
+                    return Unauthorized(problem);
+                }
+                var token = GenerateApiKeyJwtToken(apiKey);
+                Response.Cookies.Append("jwt", token, new Microsoft.AspNetCore.Http.CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(12)
+                });
+                _logger.LogInformation("API Key login successful, key ID: {ApiKeyId}", apiKey.Id);
+                return Ok(new { token });
             }
-            var token = GenerateApiKeyJwtToken(apiKey);
-            Response.Cookies.Append("jwt", token, new Microsoft.AspNetCore.Http.CookieOptions
+            catch (Exception ex)
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddHours(12)
-            });
-            _logger.LogInformation("API Key login successful, key ID: {ApiKeyId}", apiKey.Id);
-            return Ok(new { token });
+                _logger.LogError(ex, "Exception during API Key login for key: {ApiKey}", request?.ApiKey);
+                var (msg, code) = UseTheOps.PolyglotInitiative.Helpers.ExceptionHelper.GetFriendlyMessage(ex, nameof(AuthController), nameof(LoginApiKey));
+                var problem = new ProblemDetails
+                {
+                    Type = "https://tools.ietf.org/html/rfc7807",
+                    Title = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Internal"),
+                    Status = 500,
+                    Detail = msg,
+                    Instance = HttpContext.Request.Path
+                };
+                problem.Extensions["code"] = code;
+                return StatusCode(500, problem);
+            }
         }
 
         private string GenerateApiKeyJwtToken(ApiKey apiKey)

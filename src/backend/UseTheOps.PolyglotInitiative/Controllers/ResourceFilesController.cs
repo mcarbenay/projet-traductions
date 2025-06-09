@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
@@ -46,17 +47,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// Get a resource file by ID.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResourceFile>> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             _logger.LogInformation($"Getting resource file with ID {id}.");
-            var file = await _service.GetByIdAsync(id);
-            if (file == null) 
+            try
             {
-                _logger.LogWarning($"Resource file with ID {id} not found.");
-                return NotFound();
+                var file = await _service.GetByIdAsync(id);
+                if (file == null)
+                {
+                    _logger.LogWarning($"Resource file with ID {id} not found.");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Resource file not found: {id}"), this, nameof(Get));
+                }
+                _logger.LogInformation($"Retrieved resource file with ID {id}.");
+                return Ok(file);
             }
-            _logger.LogInformation($"Retrieved resource file with ID {id}.");
-            return Ok(file);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Get));
+            }
         }
 
         /// <summary>
@@ -80,17 +88,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             if (!await _authz.CanEditFileAsync(id))
             {
                 _logger.LogWarning($"Unauthorized update attempt for resource file ID {id}.");
-                return Forbid();
+                return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for resource file: {id}"), this, nameof(Update));
             }
             _logger.LogInformation($"Updating resource file with ID {id}.");
-            var success = await _service.UpdateAsync(id, file);
-            if (!success) 
+            try
             {
-                _logger.LogError($"Error updating resource file with ID {id}.");
-                return BadRequest();
+                var success = await _service.UpdateAsync(id, file);
+                if (!success)
+                {
+                    _logger.LogError($"Error updating resource file with ID {id}.");
+                    return ExceptionHelper.ToActionResult(new ArgumentException($"Error updating resource file: {id}"), this, nameof(Update));
+                }
+                _logger.LogInformation($"Updated resource file with ID {id}.");
+                return NoContent();
             }
-            _logger.LogInformation($"Updated resource file with ID {id}.");
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Update));
+            }
         }
 
         /// <summary>
@@ -102,17 +117,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             if (!await _authz.CanEditFileAsync(id))
             {
                 _logger.LogWarning($"Unauthorized delete attempt for resource file ID {id}.");
-                return Forbid();
+                return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for resource file: {id}"), this, nameof(Delete));
             }
             _logger.LogInformation($"Deleting resource file with ID {id}.");
-            var success = await _service.DeleteAsync(id);
-            if (!success) 
+            try
             {
-                _logger.LogError($"Error deleting resource file with ID {id}.");
-                return NotFound();
+                var success = await _service.DeleteAsync(id);
+                if (!success)
+                {
+                    _logger.LogError($"Error deleting resource file with ID {id}.");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Resource file not found: {id}"), this, nameof(Delete));
+                }
+                _logger.LogInformation($"Deleted resource file with ID {id}.");
+                return NoContent();
             }
-            _logger.LogInformation($"Deleted resource file with ID {id}.");
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
+            }
         }
 
         /// <summary>
@@ -127,29 +149,35 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             if (!await _authz.CanManageComponentAsync(componentId))
             {
                 _logger.LogWarning($"Unauthorized upload attempt for component ID {componentId}.");
-                return Forbid();
+                return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized upload attempt for component: {componentId}"), this, nameof(Upload));
             }
-            if (file == null || file.Length == 0) 
+            if (file == null || file.Length == 0)
             {
                 _logger.LogWarning("Upload attempt with no file provided.");
-                return BadRequest("No file provided.");
+                return ExceptionHelper.ToActionResult(new ArgumentException("No file provided."), this, nameof(Upload));
             }
             _logger.LogInformation($"Uploading file for component ID {componentId}, language {language}.");
-            var result = await _service.UploadFileAsync(componentId, language, file);
-            if (!result.Success || result.ResourceFile == null) 
+            try
             {
-                _logger.LogError($"Error uploading file: {result.Error}");
-                return BadRequest(result.Error);
+                var result = await _service.UploadFileAsync(componentId, language, file);
+                if (!result.Success || result.ResourceFile == null)
+                {
+                    _logger.LogError($"Error uploading file: {result.Error}");
+                    return ExceptionHelper.ToActionResult(new ArgumentException(result.Error ?? "Upload failed"), this, nameof(Upload));
+                }
+                _logger.LogInformation($"Uploaded file for component ID {componentId}, language {language}.");
+                var dto = new ResourceFileDto {
+                    Id = result.ResourceFile.Id,
+                    Name = result.ResourceFile.Name,
+                    ComponentId = result.ResourceFile.ComponentId,
+                    ProjectId = result.ResourceFile.ProjectId
+                };
+                return Ok(dto);
             }
-            _logger.LogInformation($"Uploaded file for component ID {componentId}, language {language}.");
-            // Return a minimal DTO to avoid cycles
-            var dto = new ResourceFileDto {
-                Id = result.ResourceFile.Id,
-                Name = result.ResourceFile.Name,
-                ComponentId = result.ResourceFile.ComponentId,
-                ProjectId = result.ResourceFile.ProjectId
-            };
-            return Ok(dto);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Upload));
+            }
         }
 
         private class ResourceFileDto

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
@@ -42,17 +43,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// Get a project by ID.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             _logger.LogInformation("Getting project by ID: {Id}", id);
-            var project = await _service.GetByIdAsync(id);
-            if (project == null)
+            try
             {
-                _logger.LogWarning("Project not found: {Id}", id);
-                return NotFound();
+                var project = await _service.GetByIdAsync(id);
+                if (project == null)
+                {
+                    _logger.LogWarning("Project not found: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Project not found: {id}"), this, nameof(Get));
+                }
+                _logger.LogInformation("Retrieved project: {ProjectName}", project.Name);
+                return Ok(project);
             }
-            _logger.LogInformation("Retrieved project: {ProjectName}", project.Name);
-            return Ok(project);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Get));
+            }
         }
 
         /// <summary>
@@ -61,34 +69,50 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// <param name="dto">The project to create.</param>
         /// <returns>The created project.</returns>
         [HttpPost]
-        public async Task<ActionResult<Project>> Create(ProjectCreateDto dto)
+        public async Task<IActionResult> Create(ProjectCreateDto dto)
         {
             _logger.LogInformation("Creating project: {ProjectName}", dto.Name);
-            if (!await _authz.CanManageSolutionAsync(dto.SolutionId))
+            try
             {
-                _logger.LogWarning("Unauthorized attempt to create project for solution: {SolutionId}", dto.SolutionId);
-                return Forbid();
+                if (!await _authz.CanManageSolutionAsync(dto.SolutionId))
+                {
+                    _logger.LogWarning("Unauthorized attempt to create project for solution: {SolutionId}", dto.SolutionId);
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized create attempt for solution: {dto.SolutionId}"), this, nameof(Create));
+                }
+                var project = new Project
+                {
+                    Code = dto.Code,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    Origin = dto.Origin,
+                    OriginUrl = dto.OriginUrl,
+                    ExternalIdentifierId = dto.ExternalIdentifierId,
+                    SolutionId = dto.SolutionId
+                };
+                var (success, error, created) = await _service.CreateAsync(project);
+                if (!success)
+                {
+                    _logger.LogError("Error creating project: {Error}", error);
+                    if (error == "Solution does not exist.")
+                        return ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Create));
+                    if (error != null && error.Contains("exists"))
+                        return Conflict(new Microsoft.AspNetCore.Mvc.ProblemDetails {
+                            Type = "https://tools.ietf.org/html/rfc7807",
+                            Title = this.LocalizerOrDefault("Error_Conflict"),
+                            Status = 409,
+                            Detail = this.LocalizerOrDefault("Error_Conflict"),
+                            Instance = HttpContext.Request.Path,
+                            Extensions = { ["code"] = "ConflictError" }
+                        });
+                    return ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Create));
+                }
+                _logger.LogInformation("Created project: {ProjectName}", created?.Name ?? "null");
+                return CreatedAtAction(nameof(Get), new { id = created!.Id }, created);
             }
-            var project = new Project
+            catch (Exception ex)
             {
-                Code = dto.Code,
-                Name = dto.Name,
-                Description = dto.Description,
-                Origin = dto.Origin,
-                OriginUrl = dto.OriginUrl,
-                ExternalIdentifierId = dto.ExternalIdentifierId,
-                SolutionId = dto.SolutionId
-            };
-            var (success, error, created) = await _service.CreateAsync(project);
-            if (!success)
-            {
-                _logger.LogError("Error creating project: {Error}", error);
-                if (error == "Solution does not exist.") return BadRequest(error);
-                if (error != null && error.Contains("exists")) return Conflict(error);
-                return BadRequest(error);
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Create));
             }
-            _logger.LogInformation("Created project: {ProjectName}", created?.Name ?? "null");
-            return CreatedAtAction(nameof(Get), new { id = created!.Id }, created);
         }
 
         /// <summary>
@@ -98,33 +122,50 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> Update(Guid id, ProjectUpdateDto dto)
         {
             _logger.LogInformation("Updating project: {Id}", id);
-            if (!await _authz.CanManageProjectAsync(id))
+            try
             {
-                _logger.LogWarning("Unauthorized attempt to update project: {Id}", id);
-                return Forbid();
+                if (!await _authz.CanManageProjectAsync(id))
+                {
+                    _logger.LogWarning("Unauthorized attempt to update project: {Id}", id);
+                    return Helpers.ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for project: {id}"), this, nameof(Update));
+                }
+                var project = new Project
+                {
+                    Id = id,
+                    Code = dto.Code,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    Origin = dto.Origin,
+                    OriginUrl = dto.OriginUrl,
+                    ExternalIdentifierId = dto.ExternalIdentifierId,
+                    SolutionId = dto.SolutionId
+                };
+                var (success, error) = await _service.UpdateAsync(id, project);
+                if (!success)
+                {
+                    _logger.LogError("Error updating project: {Error}", error);
+                    if (error == "ID mismatch.")
+                        return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
+                    if (error == "Project not found.")
+                        return Helpers.ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Update));
+                    if (error != null && error.Contains("exists"))
+                        return Conflict(new Microsoft.AspNetCore.Mvc.ProblemDetails {
+                            Type = "https://tools.ietf.org/html/rfc7807",
+                            Title = this.LocalizerOrDefault("Error_Conflict"),
+                            Status = 409,
+                            Detail = this.LocalizerOrDefault("Error_Conflict"),
+                            Instance = HttpContext.Request.Path,
+                            Extensions = { ["code"] = "ConflictError" }
+                        });
+                    return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
+                }
+                _logger.LogInformation("Updated project: {Id}", id);
+                return NoContent();
             }
-            var project = new Project
+            catch (Exception ex)
             {
-                Id = id,
-                Code = dto.Code,
-                Name = dto.Name,
-                Description = dto.Description,
-                Origin = dto.Origin,
-                OriginUrl = dto.OriginUrl,
-                ExternalIdentifierId = dto.ExternalIdentifierId,
-                SolutionId = dto.SolutionId
-            };
-            var (success, error) = await _service.UpdateAsync(id, project);
-            if (!success)
-            {
-                _logger.LogError("Error updating project: {Error}", error);
-                if (error == "ID mismatch.") return BadRequest(error);
-                if (error == "Project not found.") return NotFound();
-                if (error != null && error.Contains("exists")) return Conflict(error);
-                return BadRequest(error);
+                return Helpers.ExceptionHelper.ToActionResult(ex, this, nameof(Update));
             }
-            _logger.LogInformation("Updated project: {Id}", id);
-            return NoContent();
         }
 
         /// <summary>
@@ -134,20 +175,28 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             _logger.LogInformation("Deleting project: {Id}", id);
-            if (!await _authz.CanManageProjectAsync(id))
+            try
             {
-                _logger.LogWarning("Unauthorized attempt to delete project: {Id}", id);
-                return Forbid();
+                if (!await _authz.CanManageProjectAsync(id))
+                {
+                    _logger.LogWarning("Unauthorized attempt to delete project: {Id}", id);
+                    return Helpers.ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for project: {id}"), this, nameof(Delete));
+                }
+                var (success, error) = await _service.DeleteAsync(id);
+                if (!success)
+                {
+                    _logger.LogError("Error deleting project: {Error}", error);
+                    if (error == "Project not found.")
+                        return Helpers.ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Delete));
+                    return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Delete));
+                }
+                _logger.LogInformation("Deleted project: {Id}", id);
+                return NoContent();
             }
-            var (success, error) = await _service.DeleteAsync(id);
-            if (!success)
+            catch (Exception ex)
             {
-                _logger.LogError("Error deleting project: {Error}", error);
-                if (error == "Project not found.") return NotFound();
-                return BadRequest(error);
+                return Helpers.ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
             }
-            _logger.LogInformation("Deleted project: {Id}", id);
-            return NoContent();
         }
 
         /// <summary>

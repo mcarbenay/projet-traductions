@@ -30,4 +30,55 @@
   <data name="Log_UserDeleted" xml:space="preserve">
     <value>User {0} deleted successfully.</value>
   </data>
+  <data name="Error_ArgumentNull" xml:space="preserve">
+    <value>Data validation failed: {0} should not be empty for operation {1} on {2}.</value>
+  </data>
+  <data name="Error_ArgumentInvalid" xml:space="preserve">
+    <value>Data validation failed: {0} is invalid for operation {1} on {2}.</value>
+  </data>
+  <data name="Error_UnauthorizedOperation" xml:space="preserve">
+    <value>You are not authorized to perform this operation ({0}) on {1}.</value>
+  </data>
+  <data name="Error_NotImplemented" xml:space="preserve">
+    <value>This operation ({0}) is not implemented on {1}.</value>
+  </data>
+  <data name="Error_NotFoundOperation" xml:space="preserve">
+    <value>The requested resource was not found for operation {0} on {1}.</value>
+  </data>
+  <data name="Error_ForeignKeyViolation" xml:space="preserve">
+    <value>Data integrity error: Foreign key constraint failed for column '{0}' during {1} on {2}.</value>
+  </data>
+  <data name="Error_UniqueViolation" xml:space="preserve">
+    <value>Data integrity error: Duplicate value for unique field during {0} on {1}.</value>
+  </data>
+  <data name="Error_StringTruncation" xml:space="preserve">
+    <value>Data validation error: Value too long for column '{0}' during {1} on {2}.</value>
+  </data>
+  <data name="Error_CheckConstraint" xml:space="preserve">
+    <value>Data validation error: Check constraint failed during {0} on {1}.</value>
+  </data>
+  <data name="Error_NotNullViolation" xml:space="preserve">
+    <value>Data validation error: Null value not allowed for column '{0}' during {1} on {2}.</value>
+  </data>
+  <data name="Error_InvalidDataType" xml:space="preserve">
+    <value>Data validation error: Invalid data type for column '{0}' during {1} on {2}.</value>
+  </data>
+  <data name="Error_Deadlock" xml:space="preserve">
+    <value>Database error: Deadlock detected during {0} on {1}. Please retry.</value>
+  </data>
+  <data name="Error_DbCommunication" xml:space="preserve">
+    <value>Database communication error during {0} on {1}.</value>
+  </data>
+  <data name="Error_DbGeneric" xml:space="preserve">
+    <value>A database error occurred during {0} on {1}.</value>
+  </data>
+  <data name="Error_OptimisticConcurrency" xml:space="preserve">
+    <value>Concurrency error: The resource was modified by another user during {0} on {1}. Please reload and try again.</value>
+  </data>
+  <data name="Error_DbTimeout" xml:space="preserve">
+    <value>Database timeout during {0} on {1}.</value>
+  </data>
+  <data name="Error_Timeout" xml:space="preserve">
+    <value>Operation timed out during {0} on {1}.</value>
+  </data>
 </root>

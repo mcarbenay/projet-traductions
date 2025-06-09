@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
@@ -42,40 +43,54 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// Get a component by ID.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Component>> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             _logger.LogInformation("Getting component by ID: {Id}", id);
-            var component = await _service.GetByIdAsync(id);
-            if (component == null) 
+            try
             {
-                _logger.LogWarning("Component not found: {Id}", id);
-                return NotFound();
+                var component = await _service.GetByIdAsync(id);
+                if (component == null) 
+                {
+                    _logger.LogWarning("Component not found: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Component not found: {id}"), this, nameof(Get));
+                }
+                _logger.LogInformation("Retrieved component: {Id}", component.Id);
+                return Ok(component);
             }
-            _logger.LogInformation("Retrieved component: {Id}", component.Id);
-            return Ok(component);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Get));
+            }
         }
 
         /// <summary>
         /// Create a new component.
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Component>> Create(ComponentCreateDto dto)
+        public async Task<IActionResult> Create(ComponentCreateDto dto)
         {
             _logger.LogInformation("Creating component: {@Component}", dto);
-            if (!await _authz.CanManageProjectAsync(dto.ProjectId))
+            try
             {
-                _logger.LogWarning("Unauthorized create attempt for project: {ProjectId}", dto.ProjectId);
-                return Forbid();
+                if (!await _authz.CanManageProjectAsync(dto.ProjectId))
+                {
+                    _logger.LogWarning("Unauthorized create attempt for project: {ProjectId}", dto.ProjectId);
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized create attempt for project: {dto.ProjectId}"), this, nameof(Create));
+                }
+                var component = new Component
+                {
+                    Name = dto.Name,
+                    Code = dto.Code,
+                    ProjectId = dto.ProjectId
+                };
+                var created = await _service.CreateAsync(component);
+                _logger.LogInformation("Created component: {Id}", created.Id);
+                return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
-            var component = new Component
+            catch (Exception ex)
             {
-                Name = dto.Name,
-                Code = dto.Code,
-                ProjectId = dto.ProjectId
-            };
-            var created = await _service.CreateAsync(component);
-            _logger.LogInformation("Created component: {Id}", created.Id);
-            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Create));
+            }
         }
 
         /// <summary>
@@ -85,26 +100,33 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> Update(Guid id, ComponentUpdateDto dto)
         {
             _logger.LogInformation("Updating component: {Id}", id);
-            if (!await _authz.CanManageComponentAsync(id))
+            try
             {
-                _logger.LogWarning("Unauthorized update attempt for component: {Id}", id);
-                return Forbid();
+                if (!await _authz.CanManageComponentAsync(id))
+                {
+                    _logger.LogWarning("Unauthorized update attempt for component: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for component: {id}"), this, nameof(Update));
+                }
+                var component = new Component
+                {
+                    Id = id,
+                    Name = dto.Name,
+                    Code = dto.Code,
+                    ProjectId = dto.ProjectId
+                };
+                var success = await _service.UpdateAsync(id, component);
+                if (!success) 
+                {
+                    _logger.LogError("Error updating component, not found: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Component not found: {id}"), this, nameof(Update));
+                }
+                _logger.LogInformation("Updated component: {Id}", id);
+                return NoContent();
             }
-            var component = new Component
+            catch (Exception ex)
             {
-                Id = id,
-                Name = dto.Name,
-                Code = dto.Code,
-                ProjectId = dto.ProjectId
-            };
-            var success = await _service.UpdateAsync(id, component);
-            if (!success) 
-            {
-                _logger.LogError("Error updating component, not found: {Id}", id);
-                return BadRequest();
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Update));
             }
-            _logger.LogInformation("Updated component: {Id}", id);
-            return NoContent();
         }
 
         /// <summary>
@@ -114,19 +136,26 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             _logger.LogInformation("Deleting component: {Id}", id);
-            if (!await _authz.CanManageComponentAsync(id))
+            try
             {
-                _logger.LogWarning("Unauthorized delete attempt for component: {Id}", id);
-                return Forbid();
+                if (!await _authz.CanManageComponentAsync(id))
+                {
+                    _logger.LogWarning("Unauthorized delete attempt for component: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for component: {id}"), this, nameof(Delete));
+                }
+                var success = await _service.DeleteAsync(id);
+                if (!success) 
+                {
+                    _logger.LogError("Error deleting component, not found: {Id}", id);
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Component not found: {id}"), this, nameof(Delete));
+                }
+                _logger.LogInformation("Deleted component: {Id}", id);
+                return NoContent();
             }
-            var success = await _service.DeleteAsync(id);
-            if (!success) 
+            catch (Exception ex)
             {
-                _logger.LogError("Error deleting component, not found: {Id}", id);
-                return NotFound();
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
             }
-            _logger.LogInformation("Deleted component: {Id}", id);
-            return NoContent();
         }
 
         /// <summary>

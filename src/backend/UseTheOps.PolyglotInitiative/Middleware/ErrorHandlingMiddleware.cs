@@ -22,8 +22,52 @@ namespace UseTheOps.PolyglotInitiative.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            // Middleware désactivé temporairement pour laisser remonter les erreurs au client
-            await _next(context);
+            // Détermination de la langue demandée (Accept-Language)
+            var acceptLang = context.Request.Headers["Accept-Language"].ToString();
+            var culture = "en-US";
+            if (!string.IsNullOrEmpty(acceptLang))
+            {
+                try
+                {
+                    var parsed = acceptLang.Split(',')[0];
+                    var normalized = parsed.Replace('_', '-');
+                    var ci = new System.Globalization.CultureInfo(normalized);
+                    System.Globalization.CultureInfo.CurrentCulture = ci;
+                    System.Globalization.CultureInfo.CurrentUICulture = ci;
+                    culture = normalized;
+                }
+                catch { /* fallback en-US */ }
+            }
+            else
+            {
+                var ci = new System.Globalization.CultureInfo("en-US");
+                System.Globalization.CultureInfo.CurrentCulture = ci;
+                System.Globalization.CultureInfo.CurrentUICulture = ci;
+            }
+
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled exception caught by ErrorHandlingMiddleware");
+
+                // Construction du ProblemDetails RFC 7807
+                var problem = new
+                {
+                    type = "https://tools.ietf.org/html/rfc7807",
+                    title = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Internal"),
+                    status = (int)HttpStatusCode.InternalServerError,
+                    detail = UseTheOps.PolyglotInitiative.LocalizationHelper.GetString("Error_Internal"),
+                    instance = context.Request.Path
+                };
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/problem+json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+
+                
+            }
         }
     }
 }

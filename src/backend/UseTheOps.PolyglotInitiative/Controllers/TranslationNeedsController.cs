@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using UseTheOps.PolyglotInitiative.Models;
 using UseTheOps.PolyglotInitiative.Services;
+using UseTheOps.PolyglotInitiative.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -41,17 +42,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// Get a translation need by ID.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<TranslationNeed>> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
-            _logger.LogInformation("Getting translation need by ID: {Id}", id);
-            var need = await _service.GetByIdAsync(id);
-            if (need == null) 
+            _logger.LogInformation($"Getting translation need by ID: {id}");
+            try
             {
-                _logger.LogWarning("Translation need not found: {Id}", id);
-                return NotFound();
+                var need = await _service.GetByIdAsync(id);
+                if (need == null)
+                {
+                    _logger.LogWarning($"Translation need not found: {id}");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Translation need not found: {id}"), this, nameof(Get));
+                }
+                _logger.LogInformation($"Retrieved translation need: {id}");
+                return Ok(need);
             }
-            _logger.LogInformation("Retrieved translation need: {Id}", id);
-            return Ok(need);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Get));
+            }
         }
 
         /// <summary>
@@ -77,20 +85,27 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, TranslationNeed need)
         {
-            _logger.LogInformation("Updating translation need: {Id}", id);
+            _logger.LogInformation($"Updating translation need: {id}");
             if (!await _authz.CanManageSolutionAsync(need.SolutionId))
             {
-                _logger.LogWarning("Unauthorized update attempt for solution: {SolutionId}", need.SolutionId);
-                return Forbid();
+                _logger.LogWarning($"Unauthorized update attempt for solution: {need.SolutionId}");
+                return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for translation need: {id}"), this, nameof(Update));
             }
-            var success = await _service.UpdateAsync(id, need);
-            if (!success) 
+            try
             {
-                _logger.LogError("Error updating translation need (not found or conflict): {Id}", id);
-                return BadRequest();
+                var success = await _service.UpdateAsync(id, need);
+                if (!success)
+                {
+                    _logger.LogError($"Error updating translation need (not found or conflict): {id}");
+                    return ExceptionHelper.ToActionResult(new ArgumentException($"Error updating translation need: {id}"), this, nameof(Update));
+                }
+                _logger.LogInformation($"Updated translation need: {id}");
+                return NoContent();
             }
-            _logger.LogInformation("Updated translation need: {Id}", id);
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Update));
+            }
         }
 
         /// <summary>
@@ -99,26 +114,33 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            _logger.LogInformation("Deleting translation need: {Id}", id);
-            var need = await _service.GetByIdAsync(id);
-            if (need == null) 
+            _logger.LogInformation($"Deleting translation need: {id}");
+            try
             {
-                _logger.LogWarning("Delete attempt for non-existing translation need: {Id}", id);
-                return NotFound();
+                var need = await _service.GetByIdAsync(id);
+                if (need == null)
+                {
+                    _logger.LogWarning($"Delete attempt for non-existing translation need: {id}");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Translation need not found: {id}"), this, nameof(Delete));
+                }
+                if (!await _authz.CanManageSolutionAsync(need.SolutionId))
+                {
+                    _logger.LogWarning($"Unauthorized delete attempt for solution: {need.SolutionId}");
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for translation need: {id}"), this, nameof(Delete));
+                }
+                var success = await _service.DeleteAsync(id);
+                if (!success)
+                {
+                    _logger.LogError($"Error deleting translation need (not found or conflict): {id}");
+                    return ExceptionHelper.ToActionResult(new ArgumentException($"Error deleting translation need: {id}"), this, nameof(Delete));
+                }
+                _logger.LogInformation($"Deleted translation need: {id}");
+                return NoContent();
             }
-            if (!await _authz.CanManageSolutionAsync(need.SolutionId))
+            catch (Exception ex)
             {
-                _logger.LogWarning("Unauthorized delete attempt for solution: {SolutionId}", need.SolutionId);
-                return Forbid();
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
             }
-            var success = await _service.DeleteAsync(id);
-            if (!success) 
-            {
-                _logger.LogError("Error deleting translation need (not found or conflict): {Id}", id);
-                return NotFound();
-            }
-            _logger.LogInformation("Deleted translation need: {Id}", id);
-            return NoContent();
         }
 
         /// <summary>

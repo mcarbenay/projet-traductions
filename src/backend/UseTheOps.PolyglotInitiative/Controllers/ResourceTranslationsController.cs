@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UseTheOps.PolyglotInitiative.Services;
 using Microsoft.Extensions.Logging;
+using UseTheOps.PolyglotInitiative.Helpers;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
@@ -41,17 +42,24 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         /// Get a resource translation by ID.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResourceTranslation>> Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             _logger.LogInformation($"Getting resource translation with ID: {id}.");
-            var translation = await _service.GetByIdAsync(id);
-            if (translation == null) 
+            try
             {
-                _logger.LogWarning($"Resource translation with ID: {id} not found.");
-                return NotFound();
+                var translation = await _service.GetByIdAsync(id);
+                if (translation == null)
+                {
+                    _logger.LogWarning($"Resource translation with ID: {id} not found.");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Resource translation not found: {id}"), this, nameof(Get));
+                }
+                _logger.LogInformation($"Successfully retrieved resource translation with ID: {id}.");
+                return Ok(translation);
             }
-            _logger.LogInformation($"Successfully retrieved resource translation with ID: {id}.");
-            return Ok(translation);
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Get));
+            }
         }
 
         /// <summary>
@@ -81,16 +89,23 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
             {
                 _logger.LogWarning($"Unauthorized attempt to update resource translation for resource ID: {translation.TranslatableResourceId}.");
-                return Forbid();
+                return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for resource translation: {id}"), this, nameof(Update));
             }
-            var success = await _service.UpdateAsync(id, translation);
-            if (!success) 
+            try
             {
-                _logger.LogError($"Error updating resource translation with ID: {id}.");
-                return BadRequest();
+                var success = await _service.UpdateAsync(id, translation);
+                if (!success)
+                {
+                    _logger.LogError($"Error updating resource translation with ID: {id}.");
+                    return ExceptionHelper.ToActionResult(new ArgumentException($"Error updating resource translation: {id}"), this, nameof(Update));
+                }
+                _logger.LogInformation($"Successfully updated resource translation with ID: {id}.");
+                return NoContent();
             }
-            _logger.LogInformation($"Successfully updated resource translation with ID: {id}.");
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Update));
+            }
         }
 
         /// <summary>
@@ -100,26 +115,32 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             _logger.LogInformation($"Deleting resource translation with ID: {id}.");
-            // You may need to fetch the translation to get the file/component context
-            var translation = await _service.GetByIdAsync(id);
-            if (translation == null) 
+            try
             {
-                _logger.LogWarning($"Resource translation with ID: {id} not found for deletion.");
-                return NotFound();
+                var translation = await _service.GetByIdAsync(id);
+                if (translation == null)
+                {
+                    _logger.LogWarning($"Resource translation with ID: {id} not found for deletion.");
+                    return ExceptionHelper.ToActionResult(new KeyNotFoundException($"Resource translation not found: {id}"), this, nameof(Delete));
+                }
+                if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
+                {
+                    _logger.LogWarning($"Unauthorized attempt to delete resource translation for resource ID: {translation.TranslatableResourceId}.");
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for resource translation: {id}"), this, nameof(Delete));
+                }
+                var success = await _service.DeleteAsync(id);
+                if (!success)
+                {
+                    _logger.LogError($"Error deleting resource translation with ID: {id}.");
+                    return ExceptionHelper.ToActionResult(new ArgumentException($"Error deleting resource translation: {id}"), this, nameof(Delete));
+                }
+                _logger.LogInformation($"Successfully deleted resource translation with ID: {id}.");
+                return NoContent();
             }
-            if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
+            catch (Exception ex)
             {
-                _logger.LogWarning($"Unauthorized attempt to delete resource translation for resource ID: {translation.TranslatableResourceId}.");
-                return Forbid();
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
             }
-            var success = await _service.DeleteAsync(id);
-            if (!success) 
-            {
-                _logger.LogError($"Error deleting resource translation with ID: {id}.");
-                return NotFound();
-            }
-            _logger.LogInformation($"Successfully deleted resource translation with ID: {id}.");
-            return NoContent();
         }
     }
 }
