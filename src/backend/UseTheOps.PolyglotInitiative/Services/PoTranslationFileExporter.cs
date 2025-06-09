@@ -11,7 +11,7 @@ namespace UseTheOps.PolyglotInitiative.Services
     {
         public string FileExtension => ".po";
 
-        public async Task<byte[]> ExportAsync(
+        public Task<byte[]> ExportAsync(
             IEnumerable<TranslatableResource> resources,
             IEnumerable<ResourceTranslation> translations,
             string language)
@@ -19,12 +19,13 @@ namespace UseTheOps.PolyglotInitiative.Services
             var sb = new StringBuilder();
             foreach (var r in resources)
             {
-                var t = translations.FirstOrDefault(tr => tr.ResourceKey == r.ResourceKey && tr.Language == language);
-                sb.AppendLine($"msgid \"{r.ResourceKey}\"");
-                sb.AppendLine($"msgstr \"{(t?.Value ?? string.Empty).Replace("\"", "\\\"")}\"");
+                var t = translations.FirstOrDefault(tr => tr.TranslatableResourceId == r.Id && tr.TranslationNeed != null && tr.TranslationNeed.Code == language);
+                var value = t?.ValidatedValue ?? $"##{r.Key} in {language}##";
+                sb.AppendLine($"msgid \"{r.Key}\"");
+                sb.AppendLine($"msgstr \"{value.Replace("\"", "\\\"")}\"");
                 sb.AppendLine();
             }
-            return Encoding.UTF8.GetBytes(sb.ToString());
+            return Task.FromResult(Encoding.UTF8.GetBytes(sb.ToString()));
         }
     }
 }

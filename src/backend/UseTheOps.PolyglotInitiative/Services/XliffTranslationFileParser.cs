@@ -13,7 +13,7 @@ namespace UseTheOps.PolyglotInitiative.Services
     {
         public bool CanParse(string fileExtension) => fileExtension.ToLowerInvariant() == ".xliff";
 
-        public async Task<TranslationFileParseResult> ParseAsync(Stream stream)
+        public Task<TranslationFileParseResult> ParseAsync(Stream stream)
         {
             var result = new TranslationFileParseResult();
             XDocument doc = XDocument.Load(stream);
@@ -33,7 +33,7 @@ namespace UseTheOps.PolyglotInitiative.Services
                         result.Entries.Add(new TranslationEntry { Key = key!, Value = value ?? string.Empty, Language = lang });
                 }
             }
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

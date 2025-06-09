@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "UseTheOps.PolyglotInitiative": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PG_CONNECTION_STRING": "Host=localhost;Port=5432;Database=polyglot_test;Username=test;Password=test",
+        "ADMIN_EMAIL": "admin@example.com",
+        "ADMIN_PASSWORD": "TestPassword123!",
+        "JWT_SECRET": "SuperSecretKeyForJwtToken123456!@#"
+      },
+      "applicationUrl": "https://localhost:59353;http://localhost:59354"
+    }
+  }
+}

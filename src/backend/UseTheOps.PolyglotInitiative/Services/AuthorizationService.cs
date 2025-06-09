@@ -29,7 +29,8 @@ namespace UseTheOps.PolyglotInitiative.Services
         // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur une solution donnée
         public async Task<bool> CanManageSolutionAsync(Guid solutionId)
         {
-            if (IsAdmin() || (IsApiKey())) return true;
+            if (IsAdmin()) return true; // L'admin a tous les droits
+            if (IsApiKey()) return true;
             if (IsProductOwner())
             {
                 var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -42,6 +43,7 @@ namespace UseTheOps.PolyglotInitiative.Services
         // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un projet
         public async Task<bool> CanManageProjectAsync(Guid projectId)
         {
+            if (IsAdmin()) return true; // L'admin a tous les droits
             var project = await _db.Projects.FindAsync(projectId);
             if (project == null) return false;
             return await CanManageSolutionAsync(project.SolutionId);
@@ -50,6 +52,7 @@ namespace UseTheOps.PolyglotInitiative.Services
         // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un composant
         public async Task<bool> CanManageComponentAsync(Guid componentId)
         {
+            if (IsAdmin()) return true; // L'admin a tous les droits
             var component = await _db.Components.FindAsync(componentId);
             if (component == null) return false;
             return await CanManageProjectAsync(component.ProjectId);
@@ -58,6 +61,7 @@ namespace UseTheOps.PolyglotInitiative.Services
         // Vérifie si l'utilisateur (ou API key) a le droit d'uploader, downloader ou modifier un fichier
         public async Task<bool> CanEditFileAsync(Guid resourceFileId)
         {
+            if (IsAdmin()) return true; // L'admin a tous les droits
             var file = await _db.ResourceFiles.FindAsync(resourceFileId);
             if (file == null) return false;
             return await CanManageComponentAsync(file.ComponentId);

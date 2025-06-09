@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -11,7 +12,7 @@ namespace UseTheOps.PolyglotInitiative.Services
     {
         public string FileExtension => ".resx";
 
-        public async Task<byte[]> ExportAsync(
+        public Task<byte[]> ExportAsync(
             IEnumerable<TranslatableResource> resources,
             IEnumerable<ResourceTranslation> translations,
             string language)
@@ -19,8 +20,8 @@ namespace UseTheOps.PolyglotInitiative.Services
             var translationDict = new Dictionary<string, string>();
             foreach (var t in translations)
             {
-                if (t.Language == language)
-                    translationDict[t.ResourceKey] = t.Value;
+                if (t.TranslationNeed != null && t.TranslationNeed.Code == language)
+                    translationDict[t.TranslatableResource.Key] = t.ValidatedValue ?? $"##{t.TranslatableResource.Key} in {language}##";
             }
 
             var doc = new XDocument(
@@ -43,19 +44,16 @@ namespace UseTheOps.PolyglotInitiative.Services
                     ),
                     resources.Select(r =>
                         new XElement("data",
-                            new XAttribute("name", r.ResourceKey),
+                            new XAttribute("name", r.Key),
                             new XAttribute(XNamespace.Xml + "space", "preserve"),
-                            new XElement("value", translationDict.TryGetValue(r.ResourceKey, out var v) ? v : "")
+                            new XElement("value", translationDict.TryGetValue(r.Key, out var v) ? v : $"##{r.Key} in {language}##")
                         )
                     )
                 )
             );
-
             using var ms = new MemoryStream();
-            using var writer = new StreamWriter(ms, Encoding.UTF8);
-            doc.Save(writer);
-            await writer.FlushAsync();
-            return ms.ToArray();
+            doc.Save(ms);
+            return Task.FromResult(ms.ToArray());
         }
     }
 }

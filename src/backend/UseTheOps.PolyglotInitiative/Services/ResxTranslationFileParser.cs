@@ -13,7 +13,7 @@ namespace UseTheOps.PolyglotInitiative.Services
     {
         public bool CanParse(string fileExtension) => fileExtension.ToLowerInvariant() == ".resx";
 
-        public async Task<TranslationFileParseResult> ParseAsync(Stream stream)
+        public Task<TranslationFileParseResult> ParseAsync(Stream stream)
         {
             var result = new TranslationFileParseResult();
             XDocument doc = XDocument.Load(stream);
@@ -28,7 +28,7 @@ namespace UseTheOps.PolyglotInitiative.Services
                 }
             }
             // .resx does not encode language, so leave Languages empty
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

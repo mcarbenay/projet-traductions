@@ -12,7 +12,7 @@ namespace UseTheOps.PolyglotInitiative.Services
     {
         public string FileExtension => ".xliff";
 
-        public async Task<byte[]> ExportAsync(
+        public Task<byte[]> ExportAsync(
             IEnumerable<TranslatableResource> resources,
             IEnumerable<ResourceTranslation> translations,
             string language)
@@ -27,9 +27,9 @@ namespace UseTheOps.PolyglotInitiative.Services
                         new XElement("body",
                             resources.Select(r =>
                                 new XElement("trans-unit",
-                                    new XAttribute("id", r.ResourceKey),
-                                    new XElement("source", r.ResourceKey),
-                                    new XElement("target", translations.FirstOrDefault(tr => tr.ResourceKey == r.ResourceKey && tr.Language == language)?.Value ?? string.Empty)
+                                    new XAttribute("id", r.Key),
+                                    new XElement("source", r.Key),
+                                    new XElement("target", translations.FirstOrDefault(tr => tr.TranslatableResourceId == r.Id && tr.TranslationNeed != null && tr.TranslationNeed.Code == language)?.ValidatedValue ?? $"##{r.Key} in {language}##")
                                 )
                             )
                         )
@@ -38,7 +38,7 @@ namespace UseTheOps.PolyglotInitiative.Services
             );
             using var ms = new MemoryStream();
             xliff.Save(ms);
-            return ms.ToArray();
+            return Task.FromResult(ms.ToArray());
         }
     }
 }

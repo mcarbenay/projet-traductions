@@ -15,7 +15,13 @@ namespace UseTheOps.PolyglotInitiative.Services
         public async Task<List<ApiKey>> GetAllAsync() => await _db.ApiKeys.ToListAsync();
         public async Task<ApiKey?> GetByIdAsync(Guid id) => await _db.ApiKeys.FindAsync(id);
         public async Task<ApiKey> CreateAsync(ApiKey key) { _db.ApiKeys.Add(key); await _db.SaveChangesAsync(); return key; }
-        public async Task<bool> UpdateAsync(Guid id, ApiKey key) { if (id != key.Id) return false; _db.Entry(key).State = EntityState.Modified; await _db.SaveChangesAsync(); return true; }
+        public async Task<bool> UpdateAsync(Guid id, ApiKey key) {
+            var existing = await _db.ApiKeys.FindAsync(id);
+            if (existing == null) return false;
+            existing.Scope = key.Scope;
+            await _db.SaveChangesAsync();
+            return true;
+        }
         public async Task<bool> DeleteAsync(Guid id) { var k = await _db.ApiKeys.FindAsync(id); if (k == null) return false; _db.ApiKeys.Remove(k); await _db.SaveChangesAsync(); return true; }
     }
 }

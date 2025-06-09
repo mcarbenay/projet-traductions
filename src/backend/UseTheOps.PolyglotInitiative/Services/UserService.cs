@@ -17,5 +17,24 @@ namespace UseTheOps.PolyglotInitiative.Services
         public async Task<User> CreateAsync(User user) { _db.Users.Add(user); await _db.SaveChangesAsync(); return user; }
         public async Task<bool> UpdateAsync(Guid id, User user) { if (id != user.Id) return false; _db.Entry(user).State = EntityState.Modified; await _db.SaveChangesAsync(); return true; }
         public async Task<bool> DeleteAsync(Guid id) { var u = await _db.Users.FindAsync(id); if (u == null) return false; _db.Users.Remove(u); await _db.SaveChangesAsync(); return true; }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        // Simple password hash for demo (replace with secure hash in production)
+        public static string HashPassword(string password)
+        {
+            // For demo: use SHA256 (not recommended for real apps)
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+            var hash = sha.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
+        public static bool VerifyPassword(User user, string password)
+        {
+            return user.PasswordHash == HashPassword(password);
+        }
     }
 }

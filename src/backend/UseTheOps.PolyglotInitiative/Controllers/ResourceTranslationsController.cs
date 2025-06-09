@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UseTheOps.PolyglotInitiative.Services;
+using Microsoft.Extensions.Logging;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
@@ -16,10 +17,12 @@ namespace UseTheOps.PolyglotInitiative.Controllers
     {
         private readonly ResourceTranslationService _service;
         private readonly AuthorizationService _authz;
-        public ResourceTranslationsController(ResourceTranslationService service, AuthorizationService authz)
+        private readonly ILogger<ResourceTranslationsController> _logger;
+        public ResourceTranslationsController(ResourceTranslationService service, AuthorizationService authz, ILogger<ResourceTranslationsController> logger)
         {
             _service = service;
             _authz = authz;
+            _logger = logger;
         }
 
         /// <summary>
@@ -28,7 +31,9 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ResourceTranslation>>> GetAll()
         {
+            _logger.LogInformation("Getting all resource translations.");
             var translations = await _service.GetAllAsync();
+            _logger.LogInformation("Successfully retrieved all resource translations.");
             return Ok(translations);
         }
 
@@ -38,8 +43,14 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ResourceTranslation>> Get(Guid id)
         {
+            _logger.LogInformation($"Getting resource translation with ID: {id}.");
             var translation = await _service.GetByIdAsync(id);
-            if (translation == null) return NotFound();
+            if (translation == null) 
+            {
+                _logger.LogWarning($"Resource translation with ID: {id} not found.");
+                return NotFound();
+            }
+            _logger.LogInformation($"Successfully retrieved resource translation with ID: {id}.");
             return Ok(translation);
         }
 
@@ -49,9 +60,14 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpPost]
         public async Task<ActionResult<ResourceTranslation>> Create(ResourceTranslation translation)
         {
+            _logger.LogInformation("Creating a new resource translation.");
             if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
+            {
+                _logger.LogWarning($"Unauthorized attempt to edit resource translation for resource ID: {translation.TranslatableResourceId}.");
                 return Forbid();
+            }
             var created = await _service.CreateAsync(translation);
+            _logger.LogInformation($"Successfully created a new resource translation with ID: {created.Id}.");
             return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
@@ -61,10 +77,19 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, ResourceTranslation translation)
         {
+            _logger.LogInformation($"Updating resource translation with ID: {id}.");
             if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
+            {
+                _logger.LogWarning($"Unauthorized attempt to update resource translation for resource ID: {translation.TranslatableResourceId}.");
                 return Forbid();
+            }
             var success = await _service.UpdateAsync(id, translation);
-            if (!success) return BadRequest();
+            if (!success) 
+            {
+                _logger.LogError($"Error updating resource translation with ID: {id}.");
+                return BadRequest();
+            }
+            _logger.LogInformation($"Successfully updated resource translation with ID: {id}.");
             return NoContent();
         }
 
@@ -74,13 +99,26 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            _logger.LogInformation($"Deleting resource translation with ID: {id}.");
             // You may need to fetch the translation to get the file/component context
             var translation = await _service.GetByIdAsync(id);
-            if (translation == null) return NotFound();
+            if (translation == null) 
+            {
+                _logger.LogWarning($"Resource translation with ID: {id} not found for deletion.");
+                return NotFound();
+            }
             if (!await _authz.CanEditFileAsync(translation.TranslatableResourceId))
+            {
+                _logger.LogWarning($"Unauthorized attempt to delete resource translation for resource ID: {translation.TranslatableResourceId}.");
                 return Forbid();
+            }
             var success = await _service.DeleteAsync(id);
-            if (!success) return NotFound();
+            if (!success) 
+            {
+                _logger.LogError($"Error deleting resource translation with ID: {id}.");
+                return NotFound();
+            }
+            _logger.LogInformation($"Successfully deleted resource translation with ID: {id}.");
             return NoContent();
         }
     }

@@ -13,7 +13,7 @@ namespace UseTheOps.PolyglotInitiative.Tests
         public static bool Initialized = false;
 
         [AssemblyInitialize]
-        public static async Task AssemblyInit(TestContext context)
+        public static async Task MyAssemblyInit(TestContext context)
         {
             Fixture = new TestContainerFixture();
             await Fixture.InitializeAsync();
@@ -21,7 +21,7 @@ namespace UseTheOps.PolyglotInitiative.Tests
         }
 
         [AssemblyCleanup]
-        public static async Task AssemblyCleanup()
+        public static async Task MyAssemblyCleanup()
         {
             if (Initialized)
                 await Fixture.DisposeAsync();

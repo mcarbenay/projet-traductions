@@ -15,6 +15,5 @@ namespace UseTheOps.PolyglotInitiative.Models
         public ICollection<UserSolutionAccess> UserSolutionAccesses { get; set; } = new List<UserSolutionAccess>();
         public ICollection<ResourceTranslation> ModifiedTranslations { get; set; } = new List<ResourceTranslation>();
         public ICollection<ExternalIdentifier> ModifiedExternalIdentifiers { get; set; } = new List<ExternalIdentifier>();
-        public ICollection<ApiKey> ApiKeys { get; set; } = new List<ApiKey>();
     }
 }

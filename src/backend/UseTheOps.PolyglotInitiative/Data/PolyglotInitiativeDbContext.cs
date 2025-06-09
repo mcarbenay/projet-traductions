@@ -81,11 +81,6 @@ namespace UseTheOps.PolyglotInitiative.Data
                 .HasForeignKey(usa => usa.UserId);
 
             modelBuilder.Entity<User>()
-                .HasMany(u => u.ApiKeys)
-                .WithOne(ak => ak.User)
-                .HasForeignKey(ak => ak.UserId);
-
-            modelBuilder.Entity<User>()
                 .HasMany(u => u.ModifiedTranslations)
                 .WithOne(rt => rt.ModifiedBy)
                 .HasForeignKey(rt => rt.ModifiedById)

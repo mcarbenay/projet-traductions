@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.Extensions.Localization;
 using System.Reflection;
+using System.Resources;
 
 namespace UseTheOps.PolyglotInitiative
 {

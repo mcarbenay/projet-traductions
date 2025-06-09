@@ -22,24 +22,8 @@ namespace UseTheOps.PolyglotInitiative.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unhandled exception");
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ContentType = "application/problem+json";
-                var problem = new
-                {
-                    type = "about:blank",
-                    title = LocalizationHelper.GetString("Error_Internal"),
-                    status = 500,
-                    detail = LocalizationHelper.GetString("Error_Internal")
-                };
-                await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-            }
+            // Middleware désactivé temporairement pour laisser remonter les erreurs au client
+            await _next(context);
         }
     }
 }
