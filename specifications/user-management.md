@@ -11,11 +11,14 @@
 ## Business Rules
 
 - Only administrators can manage users and rights
-- Product owners can manage projects and components they own
-- Translators can edit translation files they have access to
+- Only administrators can create solutions
+- Administrators or product owners can create projects, components, and files
+- Administrators or product owners can add required languages for a solution
+- Administrators, product owners, or translators can upload, download, and update translation content
 - Readers have read-only access
 - API keys can be generated, revoked, and associated with specific users or integration scopes
 - API keys are required for external tool and CI/CD system integration
+- An API key is considered as having product owner rights
 
 ## Data Entities
 
