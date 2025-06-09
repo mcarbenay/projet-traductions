@@ -13,7 +13,10 @@
 - **API/Background communication**: Information exchange between the APIs and the background service will be performed using Channels (producer/consumer pattern).
 - **Logging**: Logging and tracing will be based on OpenTelemetry for distributed tracing, metrics, and log collection.
 - **Documentation**: All public methods, properties, and classes must be documented with XML comments. These comments must be made available to the OpenAPI module to provide detailed operation descriptions in the generated API documentation.
-- **Authentication**: JWT or OAuth2 (to be specified as needed)
+- **Authentication**: JWT tokens are used for authentication. For frontend usage, the JWT is stored in an HTTP-only session cookie to prevent XSS attacks. For scripts and nocode tools, the JWT can also be provided in the Authorization header as a Bearer token.
+- The API exposes two login endpoints:
+  - User login: accepts email and password, returns a JWT.
+  - API key login: accepts only the API key, returns a JWT.
 - **Database**: PostgreSQL (main data storage)
 - **Migration management**: Entity Framework Core
 - **Tests**: MSTest

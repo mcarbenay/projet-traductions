@@ -36,7 +36,7 @@ A project has the following properties:
 4. **Description**: Descriptive text of the project.
 5. **Origin**: Source of the project content (e.g., GitHub, API, Azure DevOps, etc.).
 6. **Origin URL**: Link to the project source (e.g., GitHub repository URL, API, etc.).
-7. **External identifier (UUID)**: Reference to the external identifier associated with the project (see [external-connections-management.md](gestion-des-connections-externes.md)).
+7. **External identifier (UUID)**: Reference to the external identifier associated with the project (see [external-connections-management.md](external-connections-management.md)).
 
 ### Component Properties
 
@@ -79,4 +79,3 @@ Each solution has a list of translation needs, which determines the languages/va
 
 - Return to the solution list possible at any time
 - The URL reflects the selected item (solution, project, component) to allow sharing direct links
-

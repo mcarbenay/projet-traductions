@@ -1,8 +1,31 @@
-# Main Entity Diagram
+# Entity Diagram
 
-> Convention: All entity, property, relation, table, column, API endpoint, method, and business object names are in English, as per the project's technical choices.
+## Main Entities
 
-This diagram shows the structure of the main domain entities and their relationships.
+- Solution
+- Project
+- Component
+- ResourceFile
+- TranslatableResource
+- ResourceTranslation
+- TranslationNeed
+- User
+- ExternalIdentifier
+- API Key
+
+## Relationships
+
+- A Solution contains multiple Projects
+- A Project contains multiple Components
+- A Component contains multiple ResourceFiles
+- A ResourceFile contains multiple TranslatableResources
+- A TranslatableResource can have multiple ResourceTranslations
+- A TranslationNeed is linked to a Project/Component/ResourceFile
+- A User can have different roles per Solution/Project
+- An ExternalIdentifier can be linked to multiple Projects
+- An API Key is associated with a User
+
+## Diagram
 
 ```mermaid
 classDiagram
