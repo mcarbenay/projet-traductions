@@ -8,18 +8,31 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace UseTheOps.PolyglotInitiative.Middleware
 {
+    /// <summary>
+    /// Middleware for centralized error handling and ProblemDetails response formatting.
+    /// </summary>
     [ExcludeFromCodeCoverage]
     public class ErrorHandlingMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ErrorHandlingMiddleware> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ErrorHandlingMiddleware"/> class.
+        /// </summary>
+        /// <param name="next">The next middleware in the request pipeline.</param>
+        /// <param name="logger">The logger instance.</param>
         public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
         {
             _next = next;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Invokes the middleware and handles errors that occur during request processing.
+        /// </summary>
+        /// <param name="context">The HTTP context.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task Invoke(HttpContext context)
         {
             // Détermination de la langue demandée (Accept-Language)

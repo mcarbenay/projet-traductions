@@ -24,8 +24,16 @@ using OpenTelemetry.Metrics;
 
 namespace UseTheOps.PolyglotInitiative
 {
+    /// <summary>
+    /// Entry point for the Polyglot Initiative backend application.
+    /// Configures services, middleware, and application startup logic.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Main entry point. Configures and runs the web application.
+        /// </summary>
+        /// <param name="args">Command-line arguments.</param>
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +44,11 @@ namespace UseTheOps.PolyglotInitiative
             builder.Services.AddSwaggerGen(options =>
             {
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                options.IncludeXmlComments(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, xmlFilename));
+                var xmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, xmlFilename);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
                 // Add JWT Bearer security definition
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -69,6 +81,7 @@ namespace UseTheOps.PolyglotInitiative
                 options.UseNpgsql(pgConnStr));
             builder.Services.AddLocalization();
             builder.Services.AddLogging();
+            // Register application services
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.ProjectService>();
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.SolutionService>();
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.ComponentService>();
@@ -80,8 +93,7 @@ namespace UseTheOps.PolyglotInitiative
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.ApiKeyService>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<UseTheOps.PolyglotInitiative.Services.AuthorizationService>();
-            // TODO: Add authentication, authorization, OpenTelemetry, background services, etc.
-            // Add a default authentication scheme to avoid InvalidOperationException
+            // Add authentication and JWT Bearer configuration
             builder.Services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
                 {
@@ -107,21 +119,23 @@ namespace UseTheOps.PolyglotInitiative
                     };
                 });
             // OpenTelemetry: Tracing, Metrics, Logging
-            //builder.Services.AddOpenTelemetry()
-            //    .WithTracing(tracing => tracing
-            //        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PolyglotInitiative"))
-            //        .AddAspNetCoreInstrumentation()
-            //        .AddHttpClientInstrumentation()
-            //        .AddEntityFrameworkCoreInstrumentation()
-            //        .AddConsoleExporter() // Console exporter for dev
-            //    )
-            //    .WithMetrics(metrics => metrics
-            //        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PolyglotInitiative"))
-            //        .AddAspNetCoreInstrumentation()
-            //        .AddHttpClientInstrumentation()
-            //        .AddRuntimeInstrumentation()
-            //        .AddConsoleExporter() // Console exporter for dev
-            //    );
+            builder.Services.AddOpenTelemetry()
+               .WithTracing(tracing => tracing
+                   .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PolyglotInitiative"))
+                   .AddAspNetCoreInstrumentation()
+                   .AddHttpClientInstrumentation()
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .AddConsoleExporter() // Console exporter for dev
+               )
+               .WithMetrics(metrics => metrics
+                   .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PolyglotInitiative"))
+                   .AddAspNetCoreInstrumentation()
+                   .AddHttpClientInstrumentation()
+                   .AddRuntimeInstrumentation()
+#if DEBUG
+                   .AddConsoleExporter() // Console exporter for dev
+#endif
+               );
             builder.Logging.ClearProviders();
             builder.Logging.AddOpenTelemetry(options =>
             {
@@ -129,7 +143,9 @@ namespace UseTheOps.PolyglotInitiative
                 options.ParseStateValues = true;
                 options.IncludeFormattedMessage = true;
                 options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("PolyglotInitiative"));
+#if DEBUG
                 options.AddConsoleExporter();
+#endif
             });
 
             var app = builder.Build();

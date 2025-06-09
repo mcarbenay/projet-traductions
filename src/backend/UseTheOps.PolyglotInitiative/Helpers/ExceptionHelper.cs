@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace UseTheOps.PolyglotInitiative.Helpers
 {
+    /// <summary>
+    /// Helper class for generating RFC 7807 ProblemDetails and handling exceptions in a centralized, localized way.
+    /// </summary>
     public static class ExceptionHelper
     {
         /// <summary>

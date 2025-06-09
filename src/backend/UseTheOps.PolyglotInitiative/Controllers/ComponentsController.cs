@@ -20,6 +20,10 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         private readonly ComponentService _service;
         private readonly AuthorizationService _authz;
         private readonly ILogger<ComponentsController> _logger;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComponentsController"/> class.
+        /// </summary>
         public ComponentsController(ComponentService service, AuthorizationService authz, ILogger<ComponentsController> logger)
         {
             _service = service;

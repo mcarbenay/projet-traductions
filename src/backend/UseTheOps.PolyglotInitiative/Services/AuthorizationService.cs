@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UseTheOps.PolyglotInitiative.Services
 {
+    /// <summary>
+    /// Service for handling authorization logic and access control.
+    /// </summary>
     public class AuthorizationService
     {
         private readonly PolyglotInitiativeDbContext _db;
@@ -18,15 +21,41 @@ namespace UseTheOps.PolyglotInitiative.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Gets the current user as a ClaimsPrincipal.
+        /// </summary>
         public ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
 
+        /// <summary>
+        /// Checks if the current user is an admin.
+        /// </summary>
         public bool IsAdmin() => User?.IsInRole("Admin") ?? false;
+
+        /// <summary>
+        /// Checks if the current user is a product owner.
+        /// </summary>
         public bool IsProductOwner() => User?.IsInRole("ProductOwner") ?? false;
+
+        /// <summary>
+        /// Checks if the current user is a translator.
+        /// </summary>
         public bool IsTranslator() => User?.IsInRole("Translator") ?? false;
+
+        /// <summary>
+        /// Checks if the current user is a reader.
+        /// </summary>
         public bool IsReader() => User?.IsInRole("Reader") ?? false;
+
+        /// <summary>
+        /// Checks if the current user is using an API key.
+        /// </summary>
         public bool IsApiKey() => User?.HasClaim("ApiKey", "true") ?? false;
 
-        // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur une solution donnée
+        /// <summary>
+        /// Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur une solution donnée
+        /// </summary>
+        /// <param name="solutionId">L'identifiant de la solution</param>
+        /// <returns>Vrai si l'utilisateur a le droit, sinon faux</returns>
         public async Task<bool> CanManageSolutionAsync(Guid solutionId)
         {
             if (IsAdmin()) return true; // L'admin a tous les droits
@@ -40,7 +69,11 @@ namespace UseTheOps.PolyglotInitiative.Services
             return false;
         }
 
-        // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un projet
+        /// <summary>
+        /// Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un projet
+        /// </summary>
+        /// <param name="projectId">L'identifiant du projet</param>
+        /// <returns>Vrai si l'utilisateur a le droit, sinon faux</returns>
         public async Task<bool> CanManageProjectAsync(Guid projectId)
         {
             if (IsAdmin()) return true; // L'admin a tous les droits
@@ -49,7 +82,11 @@ namespace UseTheOps.PolyglotInitiative.Services
             return await CanManageSolutionAsync(project.SolutionId);
         }
 
-        // Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un composant
+        /// <summary>
+        /// Vérifie si l'utilisateur (ou API key) a le droit d'effectuer une action sur un composant
+        /// </summary>
+        /// <param name="componentId">L'identifiant du composant</param>
+        /// <returns>Vrai si l'utilisateur a le droit, sinon faux</returns>
         public async Task<bool> CanManageComponentAsync(Guid componentId)
         {
             if (IsAdmin()) return true; // L'admin a tous les droits
@@ -58,7 +95,11 @@ namespace UseTheOps.PolyglotInitiative.Services
             return await CanManageProjectAsync(component.ProjectId);
         }
 
-        // Vérifie si l'utilisateur (ou API key) a le droit d'uploader, downloader ou modifier un fichier
+        /// <summary>
+        /// Vérifie si l'utilisateur (ou API key) a le droit d'uploader, downloader ou modifier un fichier
+        /// </summary>
+        /// <param name="resourceFileId">L'identifiant du fichier</param>
+        /// <returns>Vrai si l'utilisateur a le droit, sinon faux</returns>
         public async Task<bool> CanEditFileAsync(Guid resourceFileId)
         {
             if (IsAdmin()) return true; // L'admin a tous les droits

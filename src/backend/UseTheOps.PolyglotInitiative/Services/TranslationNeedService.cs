@@ -8,17 +8,48 @@ using UseTheOps.PolyglotInitiative.Models;
 
 namespace UseTheOps.PolyglotInitiative.Services
 {
+    /// <summary>
+    /// Service for managing translation needs (languages/variants) and related business logic.
+    /// </summary>
     public class TranslationNeedService
     {
         private readonly PolyglotInitiativeDbContext _db;
         public TranslationNeedService(PolyglotInitiativeDbContext db) { _db = db; }
 
+        /// <summary>
+        /// Get all translation needs.
+        /// </summary>
         public async Task<List<TranslationNeed>> GetAllAsync() => await _db.TranslationNeeds.ToListAsync();
+
+        /// <summary>
+        /// Get a specific translation need by its identifier.
+        /// </summary>
+        /// <param name="id">The identifier of the translation need.</param>
         public async Task<TranslationNeed?> GetByIdAsync(Guid id) => await _db.TranslationNeeds.FindAsync(id);
+
+        /// <summary>
+        /// Create a new translation need.
+        /// </summary>
+        /// <param name="need">The translation need to create.</param>
         public async Task<TranslationNeed> CreateAsync(TranslationNeed need) { _db.TranslationNeeds.Add(need); await _db.SaveChangesAsync(); return need; }
+
+        /// <summary>
+        /// Update an existing translation need.
+        /// </summary>
+        /// <param name="id">The identifier of the translation need to update.</param>
+        /// <param name="need">The updated translation need data.</param>
         public async Task<bool> UpdateAsync(Guid id, TranslationNeed need) { if (id != need.Id) return false; _db.Entry(need).State = EntityState.Modified; await _db.SaveChangesAsync(); return true; }
+
+        /// <summary>
+        /// Delete a translation need.
+        /// </summary>
+        /// <param name="id">The identifier of the translation need to delete.</param>
         public async Task<bool> DeleteAsync(Guid id) { var n = await _db.TranslationNeeds.FindAsync(id); if (n == null) return false; _db.TranslationNeeds.Remove(n); await _db.SaveChangesAsync(); return true; }
 
+        /// <summary>
+        /// Get translation needs associated with a specific file.
+        /// </summary>
+        /// <param name="resourceFileId">The identifier of the resource file.</param>
         public async Task<List<TranslationNeed>> GetByFileAsync(Guid resourceFileId)
         {
             return await _db.ResourceTranslations
@@ -33,6 +64,12 @@ namespace UseTheOps.PolyglotInitiative.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Get translation needs with a pending status based on solution, project, or file.
+        /// </summary>
+        /// <param name="solutionId">The identifier of the solution.</param>
+        /// <param name="projectId">The identifier of the project.</param>
+        /// <param name="resourceFileId">The identifier of the resource file.</param>
         public async Task<List<TranslationNeed>> GetWithPendingAsync(Guid? solutionId, Guid? projectId, Guid? resourceFileId)
         {
             var query = _db.ResourceTranslations.AsQueryable();

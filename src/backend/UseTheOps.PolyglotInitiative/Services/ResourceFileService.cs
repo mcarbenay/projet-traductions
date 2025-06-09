@@ -12,6 +12,9 @@ using UseTheOps.PolyglotInitiative.Services;
 
 namespace UseTheOps.PolyglotInitiative.Services
 {
+    /// <summary>
+    /// Service for managing resource files and related business logic.
+    /// </summary>
     public partial class ResourceFileService
     {
         private readonly PolyglotInitiativeDbContext _db;
@@ -36,10 +39,25 @@ namespace UseTheOps.PolyglotInitiative.Services
             };
         }
 
+        /// <summary>
+        /// Gets all resource files.
+        /// </summary>
         public async Task<List<ResourceFile>> GetAllAsync() => await _db.ResourceFiles.Include(rf => rf.TranslatableResources).ToListAsync();
+        /// <summary>
+        /// Gets a specific resource file by ID.
+        /// </summary>
         public async Task<ResourceFile?> GetByIdAsync(Guid id) => await _db.ResourceFiles.Include(rf => rf.TranslatableResources).FirstOrDefaultAsync(rf => rf.Id == id);
+        /// <summary>
+        /// Creates a new resource file entry.
+        /// </summary>
         public async Task<ResourceFile> CreateAsync(ResourceFile file) { _db.ResourceFiles.Add(file); await _db.SaveChangesAsync(); return file; }
+        /// <summary>
+        /// Updates an existing resource file.
+        /// </summary>
         public async Task<bool> UpdateAsync(Guid id, ResourceFile file) { if (id != file.Id) return false; _db.Entry(file).State = EntityState.Modified; await _db.SaveChangesAsync(); return true; }
+        /// <summary>
+        /// Deletes a resource file.
+        /// </summary>
         public async Task<bool> DeleteAsync(Guid id)
         {
             var f = await _db.ResourceFiles.FindAsync(id);
@@ -63,6 +81,9 @@ namespace UseTheOps.PolyglotInitiative.Services
             public string FileName { get; set; } = string.Empty;
         }
 
+        /// <summary>
+        /// Uploads a file for a specific component and language.
+        /// </summary>
         public async Task<FileUploadResult> UploadFileAsync(Guid componentId, string? language, IFormFile file, CancellationToken cancellationToken = default)
         {
             var component = await _db.Components.Include(c => c.Project).FirstOrDefaultAsync(c => c.Id == componentId, cancellationToken);
@@ -159,6 +180,9 @@ namespace UseTheOps.PolyglotInitiative.Services
             return new FileUploadResult { Success = true, ResourceFile = resourceFile };
         }
 
+        /// <summary>
+        /// Downloads a resource file in the specified format and language.
+        /// </summary>
         public async Task<FileDownloadResult?> DownloadFileAsync(Guid resourceFileId, string? format = null, string? language = null)
         {
             var resourceFile = await _db.ResourceFiles

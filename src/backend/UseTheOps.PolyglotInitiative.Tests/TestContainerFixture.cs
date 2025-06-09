@@ -14,13 +14,35 @@ using Microsoft.Extensions.Logging;
 
 namespace UseTheOps.PolyglotInitiative.Tests
 {
+    /// <summary>
+    /// Provides a test fixture that manages a PostgreSQL test container, a test web application factory, and an authenticated HTTP client for integration tests.
+    /// Ensures a clean database state and injects an in-memory logger for observability.
+    /// </summary>
     public class TestContainerFixture
     {
+        /// <summary>
+        /// Gets the PostgreSQL test container instance.
+        /// </summary>
         public PostgreSqlContainer PgContainer { get; private set; }
+
+        /// <summary>
+        /// Gets the WebApplicationFactory used to create the test server and services.
+        /// </summary>
         public WebApplicationFactory<Program> Factory { get; private set; }
+
+        /// <summary>
+        /// Gets the HTTP client configured to communicate with the test server.
+        /// </summary>
         public HttpClient Client { get; private set; }
+
+        /// <summary>
+        /// Gets the in-memory logger provider for capturing logs during tests.
+        /// </summary>
         public InMemoryLoggerProvider InMemoryLoggerProvider { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestContainerFixture"/> class.
+        /// </summary>
         public TestContainerFixture()
         {
             PgContainer = new PostgreSqlBuilder()
@@ -30,19 +52,23 @@ namespace UseTheOps.PolyglotInitiative.Tests
                 .Build();
         }
 
+        /// <summary>
+        /// Starts the PostgreSQL container, configures the test server, resets the database, and creates a default admin user.
+        /// </summary>
         public async Task InitializeAsync()
         {
             await PgContainer.StartAsync();
-            // Définir la variable d'environnement PG_CONNECTION_STRING pour le backend
+            // Set the environment variable for the backend connection string
             Environment.SetEnvironmentVariable("PG_CONNECTION_STRING", PgContainer.GetConnectionString());
             InMemoryLoggerProvider = new InMemoryLoggerProvider();
-            // Force la variable d'environnement JWT_SECRET à une valeur valide (32+ caractères)
+            // Set a valid JWT secret for authentication
             Environment.SetEnvironmentVariable("JWT_SECRET", "SuperSecretKeyForJwtToken123456!@#");
             Factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureServices(services =>
                     {
+                        // Replace the DbContext with one using the test container's connection string
                         var descriptor = services.SingleOrDefault(
                             d => d.ServiceType == typeof(DbContextOptions<UseTheOps.PolyglotInitiative.Data.PolyglotInitiativeDbContext>));
                         if (descriptor != null) services.Remove(descriptor);
@@ -51,16 +77,17 @@ namespace UseTheOps.PolyglotInitiative.Tests
                     });
                     builder.ConfigureServices(services =>
                     {
+                        // Inject the in-memory logger for capturing logs
                         services.AddSingleton<ILoggerProvider>(InMemoryLoggerProvider);
                     });
-                    // builder.UseEnvironment("Development"); // Supprimé car non supporté ici
+                    // builder.UseEnvironment("Development"); // Not supported here
                 });
             Client = Factory.CreateClient();
 
-            // Truncate all tables for a clean state
+            // Truncate all tables for a clean state before each test run
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<UseTheOps.PolyglotInitiative.Data.PolyglotInitiativeDbContext>();
-            // Appliquer les migrations pour créer le schéma AVANT toute connexion
+            // Apply migrations to ensure schema is up to date
             db.Database.Migrate();
             await db.Database.OpenConnectionAsync();
             var tables = new[] {
@@ -74,7 +101,7 @@ namespace UseTheOps.PolyglotInitiative.Tests
 #pragma warning restore EF1002 // Risk of vulnerability to SQL injection.
             }
 
-            // Création d'un administrateur de test si aucun utilisateur n'existe
+            // Create a default admin user if none exists
             if (!db.Users.Any())
             {
                 var adminEmail = "admin@example.com";
@@ -94,6 +121,9 @@ namespace UseTheOps.PolyglotInitiative.Tests
             await db.Database.CloseConnectionAsync();
         }
 
+        /// <summary>
+        /// Disposes the HTTP client, test server, and stops the PostgreSQL container.
+        /// </summary>
         public async Task DisposeAsync()
         {
             Client?.Dispose();
@@ -102,6 +132,11 @@ namespace UseTheOps.PolyglotInitiative.Tests
             await PgContainer.StopAsync();
         }
 
+        /// <summary>
+        /// Authenticates the test HTTP client as the default admin user and sets the Authorization header.
+        /// </summary>
+        /// <returns>A task that completes when authentication is done.</returns>
+        /// <exception cref="Exception">Thrown if authentication fails or no token is returned.</exception>
         public async Task AuthenticateAsAdminAsync()
         {
             var loginRequest = new
@@ -126,6 +161,9 @@ namespace UseTheOps.PolyglotInitiative.Tests
             Client.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.token}");
         }
 
+        /// <summary>
+        /// Represents the result of a login request for authentication.
+        /// </summary>
         private class LoginResult { public string token { get; set; } }
     }
 }

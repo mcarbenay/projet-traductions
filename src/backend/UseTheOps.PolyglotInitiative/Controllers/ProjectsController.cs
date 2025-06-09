@@ -20,6 +20,10 @@ namespace UseTheOps.PolyglotInitiative.Controllers
         private readonly ProjectService _service;
         private readonly AuthorizationService _authz;
         private readonly ILogger<ProjectsController> _logger;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProjectsController"/> class.
+        /// </summary>
         public ProjectsController(ProjectService service, AuthorizationService authz, ILogger<ProjectsController> logger)
         {
             _service = service;
@@ -124,10 +128,11 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             _logger.LogInformation("Updating project: {Id}", id);
             try
             {
+                // On ne peut pas comparer dto.Id, il faut utiliser seulement l'id du paramètre
                 if (!await _authz.CanManageProjectAsync(id))
                 {
                     _logger.LogWarning("Unauthorized attempt to update project: {Id}", id);
-                    return Helpers.ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for project: {id}"), this, nameof(Update));
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized update attempt for project: {id}"), this, nameof(Update));
                 }
                 var project = new Project
                 {
@@ -145,9 +150,9 @@ namespace UseTheOps.PolyglotInitiative.Controllers
                 {
                     _logger.LogError("Error updating project: {Error}", error);
                     if (error == "ID mismatch.")
-                        return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
+                        return ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
                     if (error == "Project not found.")
-                        return Helpers.ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Update));
+                        return ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Update));
                     if (error != null && error.Contains("exists"))
                         return Conflict(new Microsoft.AspNetCore.Mvc.ProblemDetails {
                             Type = "https://tools.ietf.org/html/rfc7807",
@@ -157,14 +162,14 @@ namespace UseTheOps.PolyglotInitiative.Controllers
                             Instance = HttpContext.Request.Path,
                             Extensions = { ["code"] = "ConflictError" }
                         });
-                    return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
+                    return ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Update));
                 }
                 _logger.LogInformation("Updated project: {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return Helpers.ExceptionHelper.ToActionResult(ex, this, nameof(Update));
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Update));
             }
         }
 
@@ -180,22 +185,22 @@ namespace UseTheOps.PolyglotInitiative.Controllers
                 if (!await _authz.CanManageProjectAsync(id))
                 {
                     _logger.LogWarning("Unauthorized attempt to delete project: {Id}", id);
-                    return Helpers.ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for project: {id}"), this, nameof(Delete));
+                    return ExceptionHelper.ToActionResult(new UnauthorizedAccessException($"Unauthorized delete attempt for project: {id}"), this, nameof(Delete));
                 }
                 var (success, error) = await _service.DeleteAsync(id);
                 if (!success)
                 {
                     _logger.LogError("Error deleting project: {Error}", error);
                     if (error == "Project not found.")
-                        return Helpers.ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Delete));
-                    return Helpers.ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Delete));
+                        return ExceptionHelper.ToActionResult(new KeyNotFoundException(error), this, nameof(Delete));
+                    return ExceptionHelper.ToActionResult(new ArgumentException(error), this, nameof(Delete));
                 }
                 _logger.LogInformation("Deleted project: {Id}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return Helpers.ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
+                return ExceptionHelper.ToActionResult(ex, this, nameof(Delete));
             }
         }
 

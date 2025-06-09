@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace UseTheOps.PolyglotInitiative.Controllers
 {
+    /// <summary>
+    /// API endpoints for authentication (user and API key login).
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -26,6 +29,11 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Logs in a user using email and password, returning a JWT token on success.
+        /// </summary>
+        /// <param name="request">Login request containing email and password.</param>
+        /// <returns>JWT token if login is successful, Unauthorized error otherwise.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -114,6 +122,12 @@ namespace UseTheOps.PolyglotInitiative.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        /// <summary>
+        /// Logs in a user using an API key, returning a JWT token on success.
+        /// </summary>
+        /// <param name="request">Login request containing the API key.</param>
+        /// <param name="apiKeyService">Service to validate and retrieve API key information.</param>
+        /// <returns>JWT token if login is successful, Unauthorized error otherwise.</returns>
         [HttpPost("login/apikey")]
         public async Task<IActionResult> LoginApiKey([FromBody] ApiKeyLoginRequest request, [FromServices] ApiKeyService apiKeyService)
         {

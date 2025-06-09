@@ -8,10 +8,23 @@ using UseTheOps.PolyglotInitiative.Models;
 
 namespace UseTheOps.PolyglotInitiative.Services
 {
+    /// <summary>
+    /// Service for exporting translations to RESX files.
+    /// </summary>
     public class ResxTranslationFileExporter : ITranslationFileExporter
     {
+        /// <summary>
+        /// Gets the file extension for RESX files.
+        /// </summary>
         public string FileExtension => ".resx";
 
+        /// <summary>
+        /// Exports the translations to a byte array asynchronously.
+        /// </summary>
+        /// <param name="resources">The translatable resources.</param>
+        /// <param name="translations">The translations for the resources.</param>
+        /// <param name="language">The language code for the translations.</param>
+        /// <returns>A task that represents the asynchronous export operation. The task result contains the byte array of the exported RESX file.</returns>
         public Task<byte[]> ExportAsync(
             IEnumerable<TranslatableResource> resources,
             IEnumerable<ResourceTranslation> translations,
