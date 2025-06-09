@@ -1,4 +1,3 @@
-
 # Technical Choices
 
 ## Backend
@@ -20,7 +19,10 @@
   - API key login: accepts only the API key, returns a JWT.
 - **Database**: PostgreSQL (main data storage)
 - **Migration management**: Entity Framework Core
-- **Tests**: MSTest
+- **Tests**: 
+  - All backend code must be tested in a separate test assembly.
+  - Use MSTest as the test framework.
+  - Use TestContainers to provide required external resources (e.g., PostgreSQL) during tests.
 - **API documentation**: Mandatory OpenAPI (Swagger) declaration for all endpoints. All public methods, properties, and classes must include XML comments. These XML comments must be made available to the OpenAPI module to provide detailed documentation for all API operations, parameters, and models.
 - **Entry point**: Do not use top-level statements in `Program.cs`. The entry point must use the classic style with a `Program` class containing a static `Main` method. This ensures clarity, maintainability, and compatibility with advanced scenarios (such as background services, dependency injection, and testing).
 
