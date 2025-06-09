@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="Error_Unauthorized" xml:space="preserve">
+    <value>You are not authorized to perform this action.</value>
+  </data>
+  <data name="Error_NotFound" xml:space="preserve">
+    <value>The requested resource was not found.</value>
+  </data>
+  <data name="Error_Validation" xml:space="preserve">
+    <value>Validation failed for one or more fields.</value>
+  </data>
+  <data name="Error_Internal" xml:space="preserve">
+    <value>An internal error occurred. Please contact support.</value>
+  </data>
+  <data name="Log_UserCreated" xml:space="preserve">
+    <value>User {0} created successfully.</value>
+  </data>
+  <data name="Log_UserDeleted" xml:space="preserve">
+    <value>User {0} deleted successfully.</value>
+  </data>
+</root>

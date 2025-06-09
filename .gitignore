@@ -22,6 +22,8 @@ Desktop.ini
 # VS Code
 .vscode/
 
+.nuget
+
 # Rider
 .idea/
 *.sln.iml
