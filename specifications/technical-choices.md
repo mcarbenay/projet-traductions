@@ -1,3 +1,4 @@
+
 # Technical Choices
 
 ## Backend
@@ -21,6 +22,19 @@
 - **Migration management**: Entity Framework Core
 - **Tests**: MSTest
 - **API documentation**: Mandatory OpenAPI (Swagger) declaration for all endpoints. All public methods, properties, and classes must include XML comments. These XML comments must be made available to the OpenAPI module to provide detailed documentation for all API operations, parameters, and models.
+- **Entry point**: Do not use top-level statements in `Program.cs`. The entry point must use the classic style with a `Program` class containing a static `Main` method. This ensures clarity, maintainability, and compatibility with advanced scenarios (such as background services, dependency injection, and testing).
+
+### Namespace
+
+- The main namespace for the backend codebase will be:
+  - `UseTheOps.PolyglotInitiative`
+- Sub-namespaces should be used for organization, such as:
+  - `UseTheOps.PolyglotInitiative.Controllers`
+  - `UseTheOps.PolyglotInitiative.Services`
+  - `UseTheOps.PolyglotInitiative.Models`
+
+This ensures clarity, maintainability, and uniqueness across the codebase.
+
 
 ## Frontend
 

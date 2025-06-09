@@ -1,6 +1,6 @@
-# Translation File Management Project
+# The Polyglot Initiative
 
-This project aims to facilitate the management, centralization, and translation of resource files for multi-stack solutions.  
+This project, **The Polyglot Initiative**, aims to facilitate the management, centralization, and translation of resource files for multi-stack solutions.  
 It allows you to manage several solutions, each composed of projects, themselves composed of components, which contain resource files to be translated.
 
 ## Functional Domains
